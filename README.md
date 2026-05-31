@@ -17,7 +17,7 @@
 ### What I'm building
 
 #### [Mac](https://macstudio.meme) — *Meme as Code*
-A programming language where memes are first-class citizens — composable templates, effects, animations, and styles wired together with a functional pipe grammar. C++ interpreter, stdlib, LSP, and toolchain.
+A general-purpose programming language where memes are first-class citizens. A dynamically typed core — functions, closures, classes, arrays, maps, enums, error handling, and operator overloading — drives a domain grammar for composing meme templates, styles, effects, grid layouts, and GIF animations through functional pipes. Ships as a C++ interpreter with a REPL and CLI, a standard library, a full VS Code language server (hover, go-to-definition, semantic tokens, signature help, inlay hints), the Mac Studio GIF editor with an in-browser playground, and agent skills.
 
 [Studio](https://macstudio.meme) · [Playground](https://playground.macstudio.meme) · [Docs](https://docs.macstudio.meme) · [Source](https://github.com/jona62/mac)
 
