@@ -16,22 +16,22 @@
 
 ### What I'm building
 
-#### 🎬 [Mac](https://github.com/jona62/mac) — *Meme as Code*
+#### [Mac](https://github.com/jona62/mac) — *Meme as Code*
 A programming language where memes are first-class citizens — composable templates, effects, animations, and styles wired together with a functional pipe grammar. C++ interpreter, stdlib, LSP, and toolchain.
 
 [Language &amp; CLI](https://github.com/jona62/mac) · [Playground](https://playground.macstudio.meme) · [Studio](https://macstudio.meme) · [Docs](https://github.com/jona62/mac/tree/main/docs) · [Examples](https://github.com/jona62/mac/tree/main/examples) · [Agent skills](https://github.com/jona62/mac/tree/main/.agent) · [VS Code extension](https://github.com/jona62/mac/tree/main/mac-lang)
 
-#### 📦 [Rigbox](https://github.com/rigbox-dev/docs) — *ship apps from the terminal*
+#### [Rigbox](https://github.com/rigbox-dev/docs) — *ship apps from the terminal*
 A deploy platform that turns a `rig.yaml` into running workspaces and apps. Define it, push it, and Rigbox handles the rest.
 
 [CLI &amp; installer](https://github.com/rigbox-dev/cli-artifacts) · [Docs](https://github.com/rigbox-dev/docs) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
 
-#### 🤖 Agent infrastructure
+#### Agent infrastructure
 The tooling around AI coding agents — indexing code for them and making it retrievable.
 
 - **[codeindex](https://github.com/rigbox-dev/codeindex)** — semantic code indexing &amp; retrieval (tree-sitter AST + embeddings) as a CLI + MCP server.
 
-#### ⚙️ TaskDaemon — *offload the heavy work*
+#### TaskDaemon — *offload the heavy work*
 A task queue that lets a service hand CPU-intensive jobs to handlers written in any language.
 
 [Sample service](https://github.com/jona62/TaskDaemon-Sample) · [Handler SDKs](https://github.com/jona62/TaskDaemon-Handlers) · [Daemon](https://github.com/jona62/Daemon)
