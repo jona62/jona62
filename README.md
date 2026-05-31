@@ -6,7 +6,7 @@
 
 [![Mac — Meme as Code](https://img.shields.io/badge/Mac-Meme_as_Code-FF4081?style=flat&logo=ghostery&logoColor=white)](https://github.com/jona62/mac)
 [![Rigbox](https://img.shields.io/badge/Rigbox-Ship_from_the_terminal-0EA5E9?style=flat&logo=packer&logoColor=white)](https://github.com/rigbox-dev/docs)
-[![Agent Infra](https://img.shields.io/badge/Agent_Infra-Spawn_·_td_·_codeindex-8B5CF6?style=flat&logo=probot&logoColor=white)](https://github.com/rigbox-dev/spawn)
+[![Agent Infra](https://img.shields.io/badge/Agent_Infra-codeindex-8B5CF6?style=flat&logo=probot&logoColor=white)](https://github.com/rigbox-dev/codeindex)
 
 ![Profile views](https://komarev.com/ghpvc/?username=jona62&style=flat&color=blue)
 
@@ -27,12 +27,9 @@ A deploy platform that turns a `rig.yaml` into running workspaces and apps. Defi
 [CLI &amp; installer](https://github.com/rigbox-dev/cli-artifacts) · [Docs](https://github.com/rigbox-dev/docs) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
 
 #### 🤖 Agent infrastructure
-The tooling around AI coding agents — spawning them, indexing code for them, and tracking what they do.
+The tooling around AI coding agents — indexing code for them and making it retrievable.
 
-- **[Spawn](https://openrouter.ai/spawn)** — spawn any agent, on any cloud.
 - **[codeindex](https://github.com/rigbox-dev/codeindex)** — semantic code indexing &amp; retrieval (tree-sitter AST + embeddings) as a CLI + MCP server.
-- **[sidecar](https://github.com/rigbox-dev/sidecar)** — diffs, file trees, conversation history &amp; task management alongside CLI agents.
-- **[td](https://github.com/rigbox-dev/td)** — a minimalist CLI for tracking tasks across AI coding sessions.
 
 #### ⚙️ TaskDaemon — *offload the heavy work*
 A task queue that lets a service hand CPU-intensive jobs to handlers written in any language.
