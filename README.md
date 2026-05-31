@@ -4,8 +4,8 @@
 
 ### I build programming languages, developer platforms, and the infrastructure AI agents run on.
 
-[![Mac — Meme as Code](https://img.shields.io/badge/Mac-Meme_as_Code-FF4081?style=flat&logo=ghostery&logoColor=white)](https://github.com/jona62/mac)
-[![Rigbox](https://img.shields.io/badge/Rigbox-Ship_from_the_terminal-0EA5E9?style=flat&logo=packer&logoColor=white)](https://github.com/rigbox-dev/docs)
+[![Mac — Meme as Code](https://img.shields.io/badge/Mac-Meme_as_Code-FF4081?style=flat&logo=ghostery&logoColor=white)](https://macstudio.meme)
+[![Rigbox](https://img.shields.io/badge/Rigbox-Ship_from_the_terminal-0EA5E9?style=flat&logo=packer&logoColor=white)](https://rigbox.dev)
 [![Agent Infra](https://img.shields.io/badge/Agent_Infra-codeindex-8B5CF6?style=flat&logo=probot&logoColor=white)](https://github.com/rigbox-dev/codeindex)
 
 ![Profile views](https://komarev.com/ghpvc/?username=jona62&style=flat&color=blue)
@@ -16,15 +16,15 @@
 
 ### What I'm building
 
-#### [Mac](https://github.com/jona62/mac) — *Meme as Code*
+#### [Mac](https://macstudio.meme) — *Meme as Code*
 A programming language where memes are first-class citizens — composable templates, effects, animations, and styles wired together with a functional pipe grammar. C++ interpreter, stdlib, LSP, and toolchain.
 
-[Language &amp; CLI](https://github.com/jona62/mac) · [Playground](https://playground.macstudio.meme) · [Studio](https://macstudio.meme) · [Docs](https://github.com/jona62/mac/tree/main/docs) · [Examples](https://github.com/jona62/mac/tree/main/examples) · [Agent skills](https://github.com/jona62/mac/tree/main/.agent) · [VS Code extension](https://github.com/jona62/mac/tree/main/mac-lang)
+[Studio](https://macstudio.meme) · [Playground](https://playground.macstudio.meme) · [Docs](https://docs.macstudio.meme) · [Source](https://github.com/jona62/mac)
 
-#### [Rigbox](https://github.com/rigbox-dev/docs) — *ship apps from the terminal*
-A deploy platform that turns a `rig.yaml` into running workspaces and apps. Define it, push it, and Rigbox handles the rest.
+#### [Rigbox](https://rigbox.dev) — *isolated micro-VMs with native AI*
+An API-first platform for running code in isolated micro-VMs — each with its own kernel, filesystem, and network. Sandbox untrusted or AI-generated code, expose apps as public URLs with automatic HTTPS, and run AI agents through a managed, metered proxy (Anthropic, OpenAI, Google — or bring your own keys). Workspaces, snapshots, a catalog of one-call apps, setup automation, and a full `rig` CLI.
 
-[CLI &amp; installer](https://github.com/rigbox-dev/cli-artifacts) · [Docs](https://github.com/rigbox-dev/docs) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
+[Website](https://rigbox.dev) · [Docs](https://docs.rigbox.dev) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
 
 #### Agent infrastructure
 The tooling around AI coding agents — indexing code for them and making it retrievable.
