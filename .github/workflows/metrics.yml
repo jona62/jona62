@@ -1,0 +1,51 @@
+name: Metrics
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch:
+  push:
+    branches: ["main", "master"]
+
+jobs:
+  github-metrics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+
+      - name: General stats
+        uses: lowlighter/metrics@v3.34
+        with:
+          token: ${{ secrets.METRICS_TOKEN }}
+          filename: github-metrics.svg
+          template: classic
+          base: header, activity, community, repositories
+          config_timezone: America/New_York
+          config_display: large
+
+      - name: Languages
+        uses: lowlighter/metrics@v3.34
+        with:
+          token: ${{ secrets.METRICS_TOKEN }}
+          filename: languages.svg
+          template: classic
+          base: ""
+          plugin_languages: yes
+          plugin_languages_limit: 8
+          plugin_languages_ignored: html, css, dockerfile, makefile, tex
+          plugin_languages_indepth: yes
+          plugin_languages_sections: most-used
+          plugin_languages_analysis_timeout: 300
+          plugin_languages_analysis_timeout_repositories: 15
+          config_timezone: America/New_York
+
+      - name: Contribution calendar
+        uses: lowlighter/metrics@v3.34
+        with:
+          token: ${{ secrets.METRICS_TOKEN }}
+          filename: isocalendar.svg
+          template: classic
+          base: ""
+          plugin_isocalendar: yes
+          plugin_isocalendar_duration: full-year
+          config_timezone: America/New_York
