@@ -17,24 +17,24 @@
 ### What I'm building
 
 #### [Mac](https://macstudio.meme) — *Meme as Code*
-A general-purpose programming language where memes are first-class citizens. A dynamically typed core — functions, closures, classes, arrays, maps, enums, error handling, and operator overloading — drives a domain grammar for composing meme templates, styles, effects, grid layouts, and GIF animations through functional pipes. Ships as a C++ interpreter with a REPL and CLI, a standard library, a full VS Code language server (hover, go-to-definition, semantic tokens, signature help, inlay hints), the Mac Studio GIF editor with an in-browser playground, and agent skills.
+A general-purpose programming language where memes are first-class citizens. Its dynamically typed core (functions, closures, classes, arrays, maps, enums, error handling, and operator overloading) drives a domain grammar for composing meme templates, styles, effects, grid layouts, and GIF animations through functional pipes. It ships as a C++ interpreter with a REPL and CLI, a standard library, a full VS Code language server (hover, go-to-definition, semantic tokens, signature help, inlay hints), the Mac Studio GIF editor with an in-browser playground, and agent skills.
 
 [Studio](https://macstudio.meme) · [Playground](https://playground.macstudio.meme) · [Docs](https://docs.macstudio.meme) · [Source](https://github.com/jona62/mac)
 
 #### [Rigbox](https://rigbox.dev) — *isolated micro-VMs with native AI*
-An API-first platform for running code in isolated micro-VMs — each with its own kernel, filesystem, and network. Sandbox untrusted or AI-generated code, expose apps as public URLs with automatic HTTPS, and run AI agents through a managed, metered proxy (Anthropic, OpenAI, Google — or bring your own keys). Workspaces, snapshots, a catalog of one-call apps, setup automation, and a full `rig` CLI.
+An API-first platform for running code in isolated micro-VMs, each with its own kernel, filesystem, and network. Sandbox untrusted or AI-generated code, expose apps as public URLs with automatic HTTPS, and run AI agents through a managed, metered proxy across Anthropic, OpenAI, and Google (or bring your own keys). Includes workspaces, snapshots, a catalog of one-call apps, setup automation, and a full `rig` CLI.
 
 [Website](https://rigbox.dev) · [Docs](https://docs.rigbox.dev) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
 
 #### Agent infrastructure
-The tooling around AI coding agents — indexing code for them and making it retrievable.
+The tooling around AI coding agents that indexes code and makes it retrievable for them.
 
 - **[codeindex](https://github.com/rigbox-dev/codeindex)** — semantic code indexing &amp; retrieval (tree-sitter AST + embeddings) as a CLI + MCP server.
 
-#### TaskDaemon — *offload the heavy work*
+#### [TaskDaemon](https://hub.docker.com/r/mshelia/taskdaemon) — *offload the heavy work*
 A task queue that lets a service hand CPU-intensive jobs to handlers written in any language.
 
-[Sample service](https://github.com/jona62/TaskDaemon-Sample) · [Handler SDKs](https://github.com/jona62/TaskDaemon-Handlers) · [Daemon](https://github.com/jona62/Daemon)
+[Docker image](https://hub.docker.com/r/mshelia/taskdaemon) · [Sample service](https://github.com/jona62/TaskDaemon-Sample) · [Handler SDKs](https://github.com/jona62/TaskDaemon-Handlers)
 
 ---
 
@@ -72,7 +72,7 @@ A task queue that lets a service hand CPU-intensive jobs to handlers written in 
 ![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white)
 ![Codex](https://img.shields.io/badge/Codex-412991?style=flat&logo=openai&logoColor=white)
 
-Model SDKs &amp; APIs for building agent systems — including Rigbox's managed proxy that routes model calls from inside its VMs through OpenRouter, with metered credits.
+Model SDKs and APIs for building agent systems, including Rigbox's managed proxy that routes model calls from inside its VMs through OpenRouter with metered credits.
 
 ---
 
@@ -80,8 +80,10 @@ Model SDKs &amp; APIs for building agent systems — including Rigbox's managed 
 
 <div align="center">
 
-<img height="165" src="https://github-readme-stats.vercel.app/api?username=jona62&show_icons=true&include_all_commits=true&count_private=true&hide_border=true&theme=tokyonight" alt="GitHub stats" />
-<img height="165" src="https://github-readme-stats.vercel.app/api/top-langs/?username=jona62&layout=compact&langs_count=8&hide_border=true&theme=tokyonight" alt="Top languages" />
+<img src="https://github-profile-summary-cards.vercel.app/api/cards/stats?username=jona62&theme=tokyonight" alt="GitHub stats" />
+
+<img src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=jona62&theme=tokyonight" alt="Top languages by repo" />
+<img src="https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=jona62&theme=tokyonight" alt="Most committed languages" />
 
 <img src="https://streak-stats.demolab.com/?user=jona62&hide_border=true&theme=tokyonight" alt="GitHub streak" />
 
