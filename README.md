@@ -61,6 +61,19 @@ A task queue that lets a service hand CPU-intensive jobs to handlers written in 
 ![CMake](https://img.shields.io/badge/CMake-064F8C?style=flat&logo=cmake&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-000000?style=flat&logo=modelcontextprotocol&logoColor=white)
 
+**AI &amp; agents**
+
+![LangChain](https://img.shields.io/badge/LangChain-1C3C3C?style=flat&logo=langchain&logoColor=white)
+![LangGraph](https://img.shields.io/badge/LangGraph-1C3C3C?style=flat)
+![Deep Agents](https://img.shields.io/badge/Deep_Agents-5A4FCF?style=flat)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?style=flat&logo=opentelemetry&logoColor=white)
+![OpenRouter](https://img.shields.io/badge/OpenRouter-6566F1?style=flat&logo=openrouter&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude-D97757?style=flat&logo=anthropic&logoColor=white)
+![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white)
+![Codex](https://img.shields.io/badge/Codex-412991?style=flat&logo=openai&logoColor=white)
+
+Model SDKs &amp; APIs for building agent systems — including Rigbox's managed proxy that routes model calls from inside its VMs through OpenRouter, with metered credits.
+
 ---
 
 ### Stats
