@@ -80,12 +80,11 @@ Model SDKs and APIs for building agent systems, including Rigbox's managed proxy
 
 <div align="center">
 
-<img src="https://github-profile-summary-cards.vercel.app/api/cards/stats?username=jona62&theme=tokyonight" alt="GitHub stats" />
+<img src="./github-metrics.svg" alt="GitHub metrics" />
 
-<img src="https://github-profile-summary-cards.vercel.app/api/cards/repos-per-language?username=jona62&theme=tokyonight" alt="Top languages by repo" />
-<img src="https://github-profile-summary-cards.vercel.app/api/cards/most-commit-language?username=jona62&theme=tokyonight" alt="Most committed languages" />
+<img src="./isocalendar.svg" alt="Contribution calendar" />
 
-<img src="https://streak-stats.demolab.com/?user=jona62&hide_border=true&theme=tokyonight" alt="GitHub streak" />
+<img src="./languages.svg" alt="Top languages" />
 
 </div>
 
