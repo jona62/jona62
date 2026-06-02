@@ -3,23 +3,23 @@
 
   <clipPath id="barclip"><rect x="8" y="34" width="464" height="8" rx="4"/></clipPath>
   <g clip-path="url(#barclip)">
-    <rect x="8"      y="34" width="139.20" height="8" fill="#dea584"/>
-    <rect x="147.20" y="34" width="102.08" height="8" fill="#f34b7d"/>
-    <rect x="249.28" y="34" width="83.52"  height="8" fill="#3178c6"/>
-    <rect x="332.80" y="34" width="55.68"  height="8" fill="#3572a5"/>
-    <rect x="388.48" y="34" width="46.40"  height="8" fill="#f1e05a"/>
-    <rect x="434.88" y="34" width="23.20"  height="8" fill="#89e051"/>
-    <rect x="458.08" y="34" width="13.92"  height="8" fill="#555555"/>
+    <rect x="8"      y="34" width="129.92" height="8" fill="#dea584"/>
+    <rect x="137.92" y="34" width="92.80"  height="8" fill="#a97bff"/>
+    <rect x="230.72" y="34" width="74.24"  height="8" fill="#f34b7d"/>
+    <rect x="304.96" y="34" width="64.96"  height="8" fill="#3572a5"/>
+    <rect x="369.92" y="34" width="55.68"  height="8" fill="#3178c6"/>
+    <rect x="425.60" y="34" width="27.84"  height="8" fill="#89e051"/>
+    <rect x="453.44" y="34" width="18.56"  height="8" fill="#555555"/>
   </g>
 
   <g font-size="13" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" fill="#57606a">
-    <circle cx="13"  cy="64" r="5" fill="#dea584"/><text x="24"  y="68">Rust 30%</text>
-    <circle cx="129" cy="64" r="5" fill="#f34b7d"/><text x="140" y="68">C++ 22%</text>
-    <circle cx="245" cy="64" r="5" fill="#3178c6"/><text x="256" y="68">TypeScript 18%</text>
-    <circle cx="361" cy="64" r="5" fill="#3572a5"/><text x="372" y="68">Python 12%</text>
+    <circle cx="13"  cy="64" r="5" fill="#dea584"/><text x="24"  y="68">Rust 28%</text>
+    <circle cx="129" cy="64" r="5" fill="#a97bff"/><text x="140" y="68">Kotlin 20%</text>
+    <circle cx="245" cy="64" r="5" fill="#f34b7d"/><text x="256" y="68">C++ 16%</text>
+    <circle cx="361" cy="64" r="5" fill="#3572a5"/><text x="372" y="68">Python 14%</text>
 
-    <circle cx="13"  cy="92" r="5" fill="#f1e05a"/><text x="24"  y="96">JavaScript 10%</text>
-    <circle cx="129" cy="92" r="5" fill="#89e051"/><text x="140" y="96">Bash 5%</text>
-    <circle cx="245" cy="92" r="5" fill="#555555"/><text x="256" y="96">C 3%</text>
+    <circle cx="13"  cy="92" r="5" fill="#3178c6"/><text x="24"  y="96">TypeScript/JavaScript 12%</text>
+    <circle cx="205" cy="92" r="5" fill="#89e051"/><text x="216" y="96">Bash 6%</text>
+    <circle cx="300" cy="92" r="5" fill="#555555"/><text x="311" y="96">C 4%</text>
   </g>
 </svg>
