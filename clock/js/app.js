@@ -23,7 +23,7 @@
 
   var canvas, ctx, srTime;
   var figFar, figFarCtx, figNear, figNearCtx, figBlur, figBlurCtx;
-  var roomCv, veilCv, sheenCv, glossCv, marksCv, marksCtx;
+  var wallCv, veilCv, sheenCv, glossCv, marksCv, marksCtx;
   var texture, smearSprite;
   var L = null, figure = null, marksKey = -1;
   var last = 0, running = false, lastSrMinute = -1;
@@ -34,17 +34,17 @@
     var w = Math.max(240, global.innerWidth || 800);
     var h = Math.max(240, global.innerHeight || 600);
     var dpr = Math.min(dprCap, global.devicePixelRatio || 1);
-    /* The dial is the hero: size it to the viewport first, then stand the
-       painter behind it. Their height is tied to the dial (3.3 x its radius)
-       so their reach always covers the face, whatever the window is doing. */
-    var R = Math.min(w * 0.40, h * 0.291);
-    var H = R * 3.3;
-    var cy = U.clamp(h * 1.005 - 0.70 * H, Math.max(R * 1.04, h * 0.30), h * 0.50);
-    var feetY = cy + 0.70 * H;
+    /* The clock is a disc on a white wall and the painter is inside it: he
+       stands on the bottom of the case, a head shorter than the face is wide,
+       and everything beyond the glass edge is simply not shown. */
+    var R = Math.min(w * 0.455, h * 0.44);
+    var H = R * 1.8;
+    var cy = h * 0.5;
+    var feetY = cy + R * 0.88;
     return {
       w: w, h: h, dpr: dpr,
       cx: w * 0.5, cy: cy, R: R,
-      fig: { H: H, feetY: feetY, baseX: w * 0.5 + R * 0.44 }
+      fig: { H: H, feetY: feetY, baseX: w * 0.5 + R * 0.18 }
     };
   }
 
@@ -60,15 +60,10 @@
 
   /* ---- baked layers ---- */
 
-  function bakeRoom() {
+  function bakeWall() {
     var cv = makeCanvas(L.w, L.h, OVER_SCALE), c = cv._ctx;
-    var g = c.createLinearGradient(0, 0, 0, L.h);
-    g.addColorStop(0, '#f2f0ec');
-    g.addColorStop(0.55, '#eceae6');
-    g.addColorStop(0.68, '#e4e1db');
-    g.addColorStop(1, '#d4cfc6');
-    c.fillStyle = g;
-    c.fillRect(0, 0, L.w, L.h);
+    C.glass.drawWall(c, L);
+    C.glass.drawCase(c, L);
     return cv;
   }
 
@@ -79,8 +74,14 @@
   }
 
   function bakeSheen() {
-    var cv = makeCanvas(L.w, L.h, OVER_SCALE);
-    C.glass.drawStatics(cv._ctx, L, texture);
+    var cv = makeCanvas(L.w, L.h, OVER_SCALE), c = cv._ctx;
+    c.save();
+    c.beginPath();
+    c.arc(L.cx, L.cy, L.R, 0, TAU);
+    c.clip();
+    C.glass.drawStatics(c, L, texture);
+    c.restore();
+    C.glass.drawRim(c, L);
     return cv;
   }
 
@@ -278,7 +279,7 @@
     var daySeed = U.hash(new Date().toDateString(), 'dial');
     dialLayer = C.paint.buildDial(L, INK, daySeed);
     texture = C.glass.buildTexture(L, daySeed + 17);
-    roomCv = bakeRoom();
+    wallCv = bakeWall();
     veilCv = bakeVeil();
     sheenCv = bakeSheen();
     glossCv = bakeGloss();
@@ -304,22 +305,29 @@
     figFarCtx.clearRect(0, 0, L.w, L.h);
     figNearCtx.clearRect(0, 0, L.w, L.h);
     figure.draw(figFarCtx, figNearCtx, pose, L);
+    figure.fade(figFarCtx, L);
 
     var key = Math.floor(now / 1000);
     if (key !== marksKey) { marksKey = key; bakeMarks(S); }
 
-    ctx.drawImage(roomCv, 0, 0, L.w, L.h);
-    compositeFigure(figFar, L.fig.H * 0.0105, 0.74);
-    compositeFigure(figNear, L.fig.H * 0.0055, 0.82);
+    ctx.drawImage(wallCv, 0, 0, L.w, L.h);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(L.cx, L.cy, L.R, 0, TAU);
+    ctx.clip();
+    compositeFigure(figFar, L.R * 0.028, 0.74);
+    compositeFigure(figNear, L.R * 0.014, 0.82);
     ctx.drawImage(veilCv, 0, 0, L.w, L.h);
     drawTrail(ctx, now);
     ctx.drawImage(marksCv, 0, 0, L.w, L.h);
     drawLiveHistory(ctx, S);
     drawHands(ctx, S);
-    ctx.drawImage(sheenCv, 0, 0, L.w, L.h);
+    C.glass.contactGlow(ctx, S.active.pt.x, S.active.pt.y, L.R * 0.30, 0.35 + 0.5 * S.active.tight);
     var drift = Math.sin(t * 0.021) * 0.5 + 0.5;
     ctx.drawImage(glossCv, U.lerp(-1.35, 0.15, drift) * L.w, 0, L.w * 2, L.h);
-    C.glass.contactGlow(ctx, S.active.pt.x, S.active.pt.y, L.R * 0.30, 0.35 + 0.5 * S.active.tight);
+    ctx.drawImage(sheenCv, 0, 0, L.w, L.h);
+    ctx.restore();
 
     /* One-shot quality fallback: if the first couple of seconds are clearly
        not keeping up, drop to one device pixel per CSS pixel and stay there. */

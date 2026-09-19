@@ -55,16 +55,78 @@
     return cv;
   }
 
+  /* The wall the clock hangs on, and the shadow the disc casts on it. */
+  function drawWall(ctx, L) {
+    var g = ctx.createLinearGradient(0, 0, 0, L.h);
+    g.addColorStop(0, '#ffffff');
+    g.addColorStop(0.62, '#fbfaf9');
+    g.addColorStop(1, '#f3f1ee');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, L.w, L.h);
+
+    var sh = ctx.createRadialGradient(L.cx, L.cy + L.R * 0.03, L.R * 0.97, L.cx, L.cy + L.R * 0.03, L.R * 1.17);
+    sh.addColorStop(0, 'rgba(96,100,108,0.13)');
+    sh.addColorStop(0.45, 'rgba(96,100,108,0.05)');
+    sh.addColorStop(1, 'rgba(96,100,108,0)');
+    ctx.fillStyle = sh;
+    ctx.fillRect(0, 0, L.w, L.h);
+  }
+
+  /* Inside the case: light pools in the middle, the far wall falls away. */
+  function drawCase(ctx, L) {
+    var g = ctx.createRadialGradient(
+      L.cx - L.R * 0.2, L.cy - L.R * 0.3, L.R * 0.05,
+      L.cx, L.cy, L.R * 1.05);
+    g.addColorStop(0, '#f4f2ee');
+    g.addColorStop(0.55, '#eae7e2');
+    g.addColorStop(1, '#d8d4cd');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(L.cx, L.cy, L.R, 0, U.TAU);
+    ctx.fill();
+  }
+
   /* Milky pane: heavier towards the edges, thinner where the light is. */
   function drawVeil(ctx, L) {
     var g = ctx.createRadialGradient(
       L.cx - L.R * 0.35, L.cy - L.R * 0.5, L.R * 0.1,
-      L.cx, L.cy, Math.max(L.w, L.h) * 0.78);
+      L.cx, L.cy, L.R * 1.15);
     g.addColorStop(0, 'rgba(255,255,255,0.16)');
     g.addColorStop(0.45, 'rgba(252,252,251,0.30)');
-    g.addColorStop(1, 'rgba(250,250,249,0.56)');
+    g.addColorStop(1, 'rgba(250,250,249,0.62)');
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, L.w, L.h);
+    ctx.beginPath();
+    ctx.arc(L.cx, L.cy, L.R, 0, U.TAU);
+    ctx.fill();
+  }
+
+  /* The edge of the disc: glass has thickness and catches the light. */
+  function drawRim(ctx, L) {
+    var R = L.R;
+    ctx.save();
+    ctx.lineCap = 'butt';
+
+    var g = ctx.createLinearGradient(L.cx - R, L.cy - R, L.cx + R, L.cy + R);
+    g.addColorStop(0, 'rgba(255,255,255,0.95)');
+    g.addColorStop(0.35, 'rgba(255,255,255,0.35)');
+    g.addColorStop(0.62, 'rgba(163,172,182,0.30)');
+    g.addColorStop(1, 'rgba(128,137,148,0.45)');
+    ctx.strokeStyle = g;
+    ctx.lineWidth = R * 0.016;
+    ctx.beginPath();
+    ctx.arc(L.cx, L.cy, R - R * 0.008, 0, U.TAU);
+    ctx.stroke();
+
+    var g2 = ctx.createLinearGradient(L.cx - R, L.cy - R, L.cx + R, L.cy + R);
+    g2.addColorStop(0, 'rgba(255,255,255,0.7)');
+    g2.addColorStop(0.5, 'rgba(255,255,255,0.15)');
+    g2.addColorStop(1, 'rgba(255,255,255,0.55)');
+    ctx.strokeStyle = g2;
+    ctx.lineWidth = R * 0.006;
+    ctx.beginPath();
+    ctx.arc(L.cx, L.cy, R - R * 0.026, 0, U.TAU);
+    ctx.stroke();
+    ctx.restore();
   }
 
   /* Everything in the pane that never changes: grain, the window reflection,
@@ -125,6 +187,7 @@
 
   C.glass = {
     buildTexture: buildTexture, drawVeil: drawVeil,
+    drawWall: drawWall, drawCase: drawCase, drawRim: drawRim,
     drawStatics: drawStatics, drawGloss: drawGloss, contactGlow: contactGlow
   };
 })(typeof window !== 'undefined' ? window : globalThis);

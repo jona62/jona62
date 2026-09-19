@@ -155,19 +155,21 @@
   /* Soft smear sprite, drawn once and reused for every cloth mark. */
   function makeSmearSprite() {
     var s = document.createElement('canvas');
-    s.width = 256; s.height = 128;
+    s.width = 128; s.height = 128;
     var c = s.getContext('2d');
-    var g = c.createRadialGradient(128, 64, 4, 128, 64, 120);
+    /* radius == half the canvas, so the sprite fades out before its own edge
+       and never shows a seam when it is stretched into a streak */
+    var g = c.createRadialGradient(64, 64, 2, 64, 64, 64);
     g.addColorStop(0, 'rgba(70,80,96,0.5)');
-    g.addColorStop(0.45, 'rgba(70,80,96,0.2)');
+    g.addColorStop(0.45, 'rgba(70,80,96,0.18)');
     g.addColorStop(1, 'rgba(70,80,96,0)');
     c.fillStyle = g;
-    c.fillRect(0, 0, 256, 128);
+    c.fillRect(0, 0, 128, 128);
     c.globalCompositeOperation = 'destination-out';
     var rnd = U.mulberry32(4242);
-    for (var i = 0; i < 26; i++) {
+    for (var i = 0; i < 22; i++) {
       c.globalAlpha = 0.12 + rnd() * 0.3;
-      c.fillRect(0, rnd() * 128, 256, 1 + rnd() * 3);
+      c.fillRect(0, rnd() * 128, 128, 1 + rnd() * 2.5);
     }
     return s;
   }

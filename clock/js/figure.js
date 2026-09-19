@@ -24,7 +24,7 @@
     shoulder: 0.104, hip: 0.064,
     upperArm: 0.163, foreArm: 0.150, handLen: 0.052,
     thigh: 0.245, shin: 0.235,
-    crouchMax: 0.215
+    crouchMax: 0.42
   };
 
   var PALETTES = [
@@ -61,6 +61,7 @@
     this.palette = PALETTES[Math.floor(this.rng() * PALETTES.length)];
     this.s = {
       crouch: 0.06, lean: 0.03, pelvisDX: 0, twist: 0,
+      walkX: null, walkTo: 0,
       footL: -0.085, footR: 0.10, footLPrev: -0.085, footRPrev: 0.10,
       headYaw: 0, headTilt: 0, shrug: 0,
       hbx: 0, hby: 0, hbxv: 0, hbyv: 0,
@@ -103,12 +104,23 @@
     if (!s.ready) {
       s.hbx = T.x; s.hby = T.y; s.hcx = T.x; s.hcy = T.y; s.ready = true;
     }
+    if (s.walkX === null) { s.walkX = L.fig.baseX; s.walkTo = s.walkX; }
+
+    /* Standing inside the case, most of the face is out of arm's reach, so he
+       walks to the work. The dead band matters more than the speed: people
+       plant themselves and stay put until staying put stops working. */
+    var band = L.R * 0.34;
+    var want = U.clamp(T.x + (brushSide ? 0.22 : -0.22) * H, L.cx - band, L.cx + band);
+    if (Math.abs(want - s.walkTo) > 0.17 * H) s.walkTo = want;
+    s.walkTo = U.clamp(s.walkTo, L.cx - band, L.cx + band);
+    s.walkX = U.damp(s.walkX, s.walkTo, 1.25, dt);
+    var baseX = s.walkX;
 
     /* --- where each hand wants to be --- */
     var leanNow = s.lean;
     var dirX = Math.sin(leanNow), dirY = -Math.cos(leanNow);
     var perpX = Math.cos(leanNow), perpY = Math.sin(leanNow);
-    var pelvisX = L.fig.baseX + s.pelvisDX * H;
+    var pelvisX = baseX + s.pelvisDX * H;
     var pelvisY = F - (P.pelvis - s.crouch * P.crouchMax) * H;
     var chestX = pelvisX + dirX * P.torso * H, chestY = pelvisY + dirY * P.torso * H;
 
@@ -143,23 +155,26 @@
 
     /* --- solve the body from the working wrist --- */
     var armLen = (P.upperArm + P.foreArm) * H;
-    var restSX = L.fig.baseX + sideSign * P.shoulder * H;
+    var restSX = baseX + sideSign * P.shoulder * H;
     var restSY = F - (P.pelvis + P.torso) * H;
     var dx = restSX - wrist.x, dy = restSY - wrist.y;
     var d = Math.hypot(dx, dy) || 1e-6;
     var pull = U.smoothstep(armLen * 0.5, armLen * 0.94, d);
-    var comfort = U.lerp(0.80, 0.70, effort);
+    /* How much of the arm he is willing to use before the body goes to the
+       work. Keep this high or he squats for everything; low targets still
+       force a deep sit because the arm simply runs out. */
+    var comfort = U.lerp(0.96, 0.88, effort);
     var sStarX = U.lerp(restSX, wrist.x + (dx / d) * armLen * comfort, pull);
     var sStarY = U.lerp(restSY, wrist.y + (dy / d) * armLen * comfort, pull);
 
     var chestStarX = sStarX - perpX * sideSign * P.shoulder * H;
     var chestStarY = sStarY - perpY * sideSign * P.shoulder * H;
 
-    var weightT = I.weight * 0.6 + (T.x - L.fig.baseX) / H * 0.10 * effort;
+    var weightT = I.weight * 0.6 + (T.x - baseX) / H * 0.10 * effort;
     var pelvisDXT = U.clamp(weightT * 0.055, -0.075, 0.075);
     s.pelvisDX = U.damp(s.pelvisDX, pelvisDXT, 2.4, dt);
 
-    var pxNow = L.fig.baseX + s.pelvisDX * H;
+    var pxNow = baseX + s.pelvisDX * H;
     var torsoLen = P.torso * H;
     var ddx = U.clamp(chestStarX - pxNow, -torsoLen * 0.88, torsoLen * 0.88);
     var ddy = Math.sqrt(Math.max(1e-6, torsoLen * torsoLen - ddx * ddx));
@@ -176,13 +191,14 @@
     s.shrug = U.damp(s.shrug, I.shrug * 0.4 + effort * 0.5, 3.6, dt);
 
     /* feet: planted, but re-placed whenever the intent changes */
-    var footLT = I.footL - s.crouch * 0.018 - Math.max(0, weightT) * 0.010;
-    var footRT = I.footR + s.crouch * 0.022 + Math.max(0, -weightT) * 0.010;
+    var footLT = I.footL - s.crouch * 0.034 - Math.max(0, weightT) * 0.010;
+    var footRT = I.footR + s.crouch * 0.038 + Math.max(0, -weightT) * 0.010;
     s.footLPrev = s.footL; s.footRPrev = s.footR;
     s.footL = U.damp(s.footL, footLT, 2.1, dt);
     s.footR = U.damp(s.footR, footRT, 2.1, dt);
-    this.liftL = U.clamp(Math.abs(s.footL - footLT) * 0.9, 0, 0.026);
-    this.liftR = U.clamp(Math.abs(s.footR - footRT) * 0.9, 0, 0.026);
+    var stepping = Math.min(1, Math.abs(s.walkX - s.walkTo) / (0.08 * H));
+    this.liftL = U.clamp(Math.abs(s.footL - footLT) * 0.9 + stepping * 0.012, 0, 0.030);
+    this.liftR = U.clamp(Math.abs(s.footR - footRT) * 0.9 + stepping * 0.010, 0, 0.030);
 
     /* head: mostly watching the work, occasionally not */
     var headPos = { x: chestX + dirX * P.neck * H, y: chestY + dirY * P.neck * H - P.headRy * H };
@@ -204,7 +220,7 @@
     var perp = { x: Math.cos(lean), y: Math.sin(lean) };
 
     var pelvis = {
-      x: L.fig.baseX + s.pelvisDX * H + sway * 0.012 * H,
+      x: s.walkX + s.pelvisDX * H + sway * 0.012 * H,
       y: F - (P.pelvis - s.crouch * P.crouchMax) * H + breath * 0.0026 * H
     };
     var torsoLen = P.torso * H * (1 + breath * 0.005);
@@ -218,11 +234,11 @@
 
     var hipL = { x: pelvis.x - perp.x * P.hip * H, y: pelvis.y - perp.y * P.hip * H };
     var hipR = { x: pelvis.x + perp.x * P.hip * H, y: pelvis.y + perp.y * P.hip * H };
-    var ankL = { x: L.fig.baseX + s.footL * H, y: F - (0.032 + this.liftL) * H };
-    var ankR = { x: L.fig.baseX + s.footR * H, y: F - (0.030 + this.liftR) * H };
+    var ankL = { x: s.walkX + s.footL * H, y: F - (0.032 + this.liftL) * H };
+    var ankR = { x: s.walkX + s.footR * H, y: F - (0.030 + this.liftR) * H };
 
     /* legs shorten a little as the knees come forward — cheap foreshortening */
-    var legK = 1 - 0.42 * s.crouch;
+    var legK = 1 - 0.62 * s.crouch;
     var kneeL = U.solveIK(hipL.x, hipL.y, ankL.x, ankL.y, P.thigh * H * legK, P.shin * H * legK, 1);
     var kneeR = U.solveIK(hipR.x, hipR.y, ankR.x, ankR.y, P.thigh * H * legK, P.shin * H * legK, -1);
 
@@ -261,6 +277,20 @@
     ctx.lineWidth = w2;
     ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(c.x, c.y); ctx.stroke();
   }
+
+  /* Depth cue: they lean in at the top and their legs trail off into the
+     frost, so the body does not read as a flat cut-out. */
+  Figure.prototype.fade = function (far, L) {
+    far.save();
+    far.globalCompositeOperation = 'destination-in';
+    var g = far.createLinearGradient(0, L.cy - L.R * 0.2, 0, L.fig.feetY);
+    g.addColorStop(0, 'rgba(0,0,0,1)');
+    g.addColorStop(0.55, 'rgba(0,0,0,0.72)');
+    g.addColorStop(1, 'rgba(0,0,0,0.52)');
+    far.fillStyle = g;
+    far.fillRect(0, 0, L.w, L.h);
+    far.restore();
+  };
 
   Figure.prototype.draw = function (far, near, p, L) {
     var H = p.H, pal = this.palette;

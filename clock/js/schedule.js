@@ -37,8 +37,8 @@
     hub: 0.045,
     minuteInner: 0.055, minuteOuter: 0.805,
     hourInner: 0.052, hourOuter: 0.525,
-    secondTrack: 0.86,
-    inkX: 0.10, inkY: 1.22       /* the ink, low and close in — not a reach */
+    secondTrackTop: 0.82, secondTrackDrop: 0.36,
+    inkX: 0.34, inkY: 0.70       /* the pot, on the floor of the case */
   };
 
   function minuteAngle(m) { return ((m % 60) + 60) % 60 / 60 * TAU; }
@@ -66,9 +66,14 @@
   /* Where the working hand is, in dial-local polar coordinates. */
   function readActive(T, sec, st, L) {
     var cx = L.cx, cy = L.cy, R = L.R;
+    /* Where the poised brush hovers while it is just marking time. It rides
+       near the rim at the top and pulls in towards the middle at the bottom,
+       because that is the shape of what a person standing in there can
+       comfortably reach. The angle still reads the seconds. */
     var second = function () {
       var a = (sec / 60) * TAU;
-      var r = R * (GEO.secondTrack + 0.035 * Math.sin(sec * 0.9) + 0.02 * Math.sin(sec * 0.31 + 1.7));
+      var reach = GEO.secondTrackTop - GEO.secondTrackDrop * (1 - Math.cos(a)) * 0.5;
+      var r = R * (reach + 0.03 * Math.sin(sec * 0.9) + 0.018 * Math.sin(sec * 0.31 + 1.7));
       return U.polar(cx, cy, a, r);
     };
     var ink = { x: cx + R * GEO.inkX, y: cy + R * GEO.inkY };
