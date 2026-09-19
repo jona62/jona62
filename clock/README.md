@@ -106,12 +106,42 @@ every frame. He then keeps a second, unclamped position — where he would
 *like* his hips to be — and the gap between wanting and being allowed is what
 trips a step.
 
-Steps are one foot at a time, never both, with a real swing phase (~0.36 s,
-against a stance phase that is the other 60% of the cycle): minimum-jerk
-horizontally, a sine arc vertically, landing a natural stance width from the
-planted foot and never crossing it. Afterwards the pelvis height is clamped so
+Steps are one foot at a time, never both, and have a preload before the swing:
+~0.15 s of weight transfer onto the stance foot, then a ~0.34 s swing (stance
+is the other 60% of the cycle), then ~0.12 s of double support before another
+step may start. The swing is minimum-jerk horizontally, an arc vertically,
+carries the foot forward and back in the sagittal plane, and rolls it from
+toe-off through to a heel-first landing. It lands a natural stance width from
+the planted foot and never crosses it. Afterwards the pelvis height is clamped so
 that no planted leg can over-extend — which produces the hip dip over a wide
 stance for free, the inverted-pendulum effect, without modelling it.
+
+**He moves before he moves.** Bodies are not reactive. Postural muscles fire
+50–100 ms ahead of the limb they serve, gaze leads the hand by 100–200 ms, and
+weight transfers onto the stance foot *before* the other one leaves the ground
+— an anticipatory postural adjustment, which everybody makes and nobody
+notices making. Getting this wrong is the loudest tell there is: a rig whose
+body follows its hand reads as a puppet however good the skeleton underneath.
+
+This project gets it almost for free, because the schedule is a pure function
+of time. The rig asks what the hand will be doing in 210 ms and postures for
+*that* rather than for the present. The arm serves now; the trunk, the hips,
+the gaze and the stepping decision serve the near future. Across a change of
+hands there is nothing sensible to anticipate, so it falls back to the present.
+
+Everything postural then runs on second-order springs rather than exponential
+damping, slightly underdamped (ζ ≈ 0.72–0.8), so the body overshoots and
+settles the way mass does instead of sliding to a halt. The pelvis is the
+exception at ζ ≈ 0.92 — a bobbing pelvis reads as floating.
+
+Two smaller things that are wrong in almost every procedural rig:
+
+- **Hands re-grip in discrete moves.** The grip was sliding continuously along
+  the shaft, which no hand does. It now holds, and only when the work has moved
+  far enough does it let go and take a new hold, over about 200 ms, lifting off
+  the shaft as it goes.
+- **Gaze re-aims, it does not track.** The head commits to a target and holds
+  it until the work has moved far enough to be worth a new look.
 
 On top of that: trunk flexion is coupled to squat depth (a squat has to bring
 the chest forward or he falls over backwards), the spine flexes in three
@@ -119,9 +149,24 @@ segments weighted towards the lumbar, the pelvis drops on the unloaded side
 whether that is a swinging leg or just his weight on one foot, the shoulder
 girdle rides up with a high reach, the head only partly follows the trunk
 because people stabilise their heads, the free hand comes onto the shaft for
-any stroke he commits to, and reaches use the minimum-jerk profile the motor
-system actually produces (10t³ − 15t⁴ + 6t⁵, a symmetric bell-shaped speed
-curve).
+any stroke he commits to, and reaches travel on gently bowed paths — hands do
+not move in straight lines — run with the minimum-jerk profile the motor system
+actually produces (10t³ − 15t⁴ + 6t⁵, a symmetric bell-shaped speed curve). The
+two-thirds power law relating speed to curvature falls out of the same model
+rather than being bolted on. Breathing is phase-integrated so it can change
+rate without a jump, and deepens and quickens with exertion, staying up for a
+while afterwards. Clothing trails the limb it hangs off by a frame or so.
+
+### Seeing the motion
+
+Stills cannot show timing, and timing is the whole problem — the first rig
+looked fine frozen and was obviously a puppet in motion, the body locked still
+while the pole swung. `tools/strip.js` renders a contact sheet of consecutive
+frames, which is what made that visible:
+
+```
+node tools/strip.js 10:37:39 150 4 3      # 12 frames, 150 ms apart
+```
 
 ### What that is worth checking against
 
@@ -138,9 +183,27 @@ foot step backwards forever; the pelvis clamp and the balance margin disagreed,
 so he stepped every frame he could; and the stance half-width was wider than
 the landing clamp allowed, so the feet could never satisfy both targets.
 
+### What this still is not
+
+A kinematic rig with dynamics painted on, not a simulation. There are no
+forces: nothing carries momentum, no ground reaction is computed, and he cannot
+be pushed over. Two levels remain above this one and both are out of proportion
+to what the panel actually shows:
+
+- **Torque-driven simulation** — PD controllers tracking a reference pose, with
+  balance recovery. Weeks of work, an open research area, and mostly invisible
+  through this much diffusion.
+- **Motion capture**, which is the honest answer to "move like a real human".
+  You do not generate convincing human motion procedurally; you record it and
+  blend it. Worth remembering that the piece this is built after solves the
+  problem exactly that way — Baas filmed twelve hours of a real performer.
+  Everything here is an attempt to derive from first principles what he
+  obtained with a camera.
+
 Sources: Winter, *Biomechanics and Motor Control of Human Movement*, table of
 segment lengths after Drillis & Contini (1966); Flash & Hogan's minimum-jerk
-model; standard 60/40 stance-swing split.
+model; the anticipatory postural adjustment literature; the standard 60/40
+stance–swing split.
 
 Over the top of that sit two things. Layers of value noise (sway, breath,
 tremor, the head drifting off its mark), and a per-beat **intent** — a fresh
