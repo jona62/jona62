@@ -1,0 +1,48 @@
+/* The page is only ever a mount for the pane. */
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #ffffff;
+  color: #1b1f26;
+  font: 400 15px/1.5 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  overscroll-behavior: none;
+}
+
+body {
+  overflow: hidden;
+}
+
+.stage {
+  position: fixed;
+  inset: 0;
+  display: block;
+  background: #ffffff;
+}
+
+#glass {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: manipulation;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.nojs {
+  position: fixed;
+  inset: auto 0 0 0;
+  padding: 16px;
+  text-align: center;
+  color: #5b6270;
+}

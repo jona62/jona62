@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The Minute Painter</title>
+<meta name="description" content="An analogue clock whose hands are wiped and repainted, every minute, by someone standing behind the glass." />
+<meta name="theme-color" content="#ffffff" />
+<meta name="color-scheme" content="light" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="stage">
+    <canvas id="glass" aria-hidden="true"></canvas>
+    <p id="srtime" class="visually-hidden" role="status" aria-live="polite"></p>
+    <noscript><p class="nojs">This clock is painted in real time and needs JavaScript to run.</p></noscript>
+  </main>
+  <script src="js/util.js"></script>
+  <script src="js/schedule.js"></script>
+  <script src="js/paint.js"></script>
+  <script src="js/figure.js"></script>
+  <script src="js/glass.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
