@@ -15,7 +15,8 @@ let prevFoot=[0,0], flips=0, prevDir=[0,0];
 for (let i=0;i<60*120;i++){          // 120 s at 60fps
   const now = new Date(t0 + i*1000/60);
   const S = C.schedule.read(now, L);
-  fig.update(1/60, S, L, (t0+i*1000/60)/1000);
+  const SA = C.schedule.read(new Date(t0 + i*1000/60 + 210), L);
+  fig.update(1/60, S, L, (t0+i*1000/60)/1000, SA);
   const p = fig.pose(L, (t0+i*1000/60)/1000);
   frames++;
   for (const key of ['pelvis','shL','handB','kneeL','ankR']) {
@@ -23,20 +24,21 @@ for (let i=0;i<60*120;i++){          // 120 s at 60fps
   }
   const f=fig.feet;
   for (let k=0;k<2;k++){
-    if (f[k].swing>0 && lastSwing[k]===0) {
+    const moving = f[k].state !== 'plant';
+    if (moving && !lastSwing[k]) {
       steps++;
       const dir = Math.sign(f[k].to - f[k].x);
       if (dir!==0 && dir===-prevDir[k]) flips++;
       prevDir[k]=dir;
     }
-    lastSwing[k]=f[k].swing;
+    lastSwing[k]=moving;
   }
   const span=[Math.min(f[0].x,f[1].x),Math.max(f[0].x,f[1].x)];
   const com = U.lerp(fig.s.hipX, p.shL.x, 0.2);
   if (com < span[0]-0.02*H || com > span[1]+0.02*H) comOut++;
   maxHip=Math.max(maxHip,p.pelvis.y); minHip=Math.min(minHip,p.pelvis.y);
   // both feet swinging at once would be a fall
-  if (f[0].swing>0 && f[1].swing>0) console.log('!! double swing at frame',i);
+  if (f[0].state!=='plant' && f[1].state!=='plant') console.log('!! both feet off the ground at frame',i);
 }
 console.log('frames',frames,'NaN',nan);
 console.log('steps in 120s:',steps, ' (=',(steps/2).toFixed(1),'per minute per foot)');

@@ -44,7 +44,21 @@
   function minuteAngle(m) { return ((m % 60) + 60) % 60 / 60 * TAU; }
   function hourAngle(h, m) { return (((h % 12) + 12) % 12 + m / 60) / 12 * TAU; }
 
-  function blendPt(a, b, t) { return { x: U.lerp(a.x, b.x, t), y: U.lerp(a.y, b.y, t) }; }
+  /* Hands do not travel in straight lines. A point-to-point human reach is a
+     gently bowed path run with a bell-shaped speed profile — the minimum-jerk
+     solution, which is the quintic 10t^3-15t^4+6t^5 (U.smootherstep). Passing
+     an already-eased u in here and bowing the path is all it takes; the two
+     thirds power law relating speed to curvature falls out of the same model. */
+  function arcPt(a, b, u, bow) {
+    var mx = (a.x + b.x) * 0.5, my = (a.y + b.y) * 0.5;
+    var dx = b.x - a.x, dy = b.y - a.y;
+    var cx = mx - dy * bow, cy = my + dx * bow;
+    var mt = 1 - u;
+    return {
+      x: mt * mt * a.x + 2 * mt * u * cx + u * u * b.x,
+      y: mt * mt * a.y + 2 * mt * u * cy + u * u * b.y
+    };
+  }
 
   function timings(date) {
     var dayKey = date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
@@ -91,18 +105,18 @@
         var hp = U.clamp(U.invLerp(T.hWipeA, T.hWipeB, sec), 0, 1);
         var scrub = Math.sin(hp * 27) * 0.028;
         var p = hourTip(1 - U.easeInOutCubic(hp), st.hour.angle + scrub);
-        var into = U.smoothstep(T.hWipeA - 1.3, T.hWipeA, sec);
-        var outOf = U.smoothstep(T.hWipeB, T.hWipeB + 0.9, sec);
+        var into = U.smootherstep(T.hWipeA - 1.3, T.hWipeA, sec);
+        var outOf = U.smootherstep(T.hWipeB, T.hWipeB + 0.9, sec);
         return {
-          pt: blendPt(blendPt(second(), p, into), ink, outOf),
+          pt: arcPt(arcPt(second(), p, into, 0.11), ink, outOf, -0.13),
           side: 'cloth', tight: 0.86 * into * (1 - outOf * 0.7), effort: 0.78, phase: 'hour-wipe'
         };
       }
       if (sec >= T.hWipeB + 0.9 && sec < T.hDrawA) {
-        var app = U.smoothstep(T.hDrawA - 1.5, T.hDrawA, sec);
+        var app = U.smootherstep(T.hDrawA - 1.5, T.hDrawA, sec);
         var dip = { x: ink.x + Math.sin(sec * 7.1) * R * 0.02, y: ink.y + Math.abs(Math.sin(sec * 3.4)) * R * 0.03 };
         return {
-          pt: blendPt(dip, hourTip(0, st.hour.nextAngle), U.easeInOutCubic(app)),
+          pt: arcPt(dip, hourTip(0, st.hour.nextAngle), app, 0.14),
           side: 'brush', tight: 0.3 + 0.6 * app, effort: 0.45, phase: 'hour-load'
         };
       }
@@ -111,9 +125,9 @@
         return { pt: hourTip(hq, st.hour.nextAngle), side: 'brush', tight: 1, effort: 1, phase: 'hour-draw' };
       }
       if (sec >= T.hDrawB && sec < T.hDrawB + 1.6) {
-        var off = U.smoothstep(T.hDrawB, T.hDrawB + 1.6, sec);
+        var off = U.smootherstep(T.hDrawB, T.hDrawB + 1.6, sec);
         return {
-          pt: blendPt(hourTip(1, st.hour.nextAngle), second(), U.easeInOutCubic(off)),
+          pt: arcPt(hourTip(1, st.hour.nextAngle), second(), off, -0.10),
           side: 'brush', tight: 1 - off * 0.85, effort: 0.6 * (1 - off), phase: 'hour-lift'
         };
       }
@@ -123,18 +137,18 @@
       var mp = U.clamp(U.invLerp(T.wipeA, T.wipeB, sec), 0, 1);
       var wob = Math.sin(mp * 31) * 0.022 + Math.sin(mp * 12.3) * 0.012;
       var wp = minuteTip(1 - U.easeInOutCubic(mp), st.minute.angle + wob);
-      var i1 = U.smoothstep(T.wipeA - 1.3, T.wipeA, sec);
-      var o1 = U.smoothstep(T.wipeB, T.wipeB + 1.0, sec);
+      var i1 = U.smootherstep(T.wipeA - 1.3, T.wipeA, sec);
+      var o1 = U.smootherstep(T.wipeB, T.wipeB + 1.0, sec);
       return {
-        pt: blendPt(blendPt(second(), wp, i1), ink, o1),
+        pt: arcPt(arcPt(second(), wp, i1, 0.12), ink, o1, -0.13),
         side: 'cloth', tight: 0.88 * i1 * (1 - o1 * 0.7), effort: 0.8, phase: 'wipe'
       };
     }
     if (sec >= T.wipeB + 1.0 && sec < T.drawA) {
-      var a2 = U.easeInOutCubic(U.smoothstep(T.drawA - 1.6, T.drawA, sec));
+      var a2 = U.smootherstep(T.drawA - 1.6, T.drawA, sec);
       var dip2 = { x: ink.x + Math.sin(sec * 6.3) * R * 0.022, y: ink.y + Math.abs(Math.sin(sec * 3.1)) * R * 0.035 };
       return {
-        pt: blendPt(dip2, minuteTip(0, st.minute.nextAngle), a2),
+        pt: arcPt(dip2, minuteTip(0, st.minute.nextAngle), a2, 0.15),
         side: 'brush', tight: 0.3 + 0.65 * a2, effort: 0.5, phase: 'load'
       };
     }
@@ -146,9 +160,9 @@
     /* Just after the turn of the minute: peel away from the finished tip and
        fall back in with the seconds. */
     if (sec < 3.2) {
-      var lift = U.easeInOutCubic(U.smoothstep(0, 3.2, sec));
+      var lift = U.smootherstep(0, 3.2, sec);
       return {
-        pt: blendPt(minuteTip(1, st.minute.angle), second(), lift),
+        pt: arcPt(minuteTip(1, st.minute.angle), second(), lift, -0.12),
         side: 'brush', tight: 1 - lift * 0.86, effort: 0.55 * (1 - lift) + 0.2, phase: 'lift'
       };
     }

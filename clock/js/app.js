@@ -18,6 +18,7 @@
 
   var INK = '#181c23';
   var GHOST = '#646c79';
+  var LOOKAHEAD_MS = 210; /* postural lead — people move before they move */
   var FIG_SCALE = 0.55;   /* figure buffers, in CSS pixels */
   var OVER_SCALE = 0.5;   /* baked soft overlays */
 
@@ -308,8 +309,13 @@
     var now = date.getTime();
     var t = now / 1000;
     var S = C.schedule.read(date, L);
+    /* The rig postures for where the work is going, not where it is: gaze and
+       the trunk lead the hand by about a fifth of a second, the way a body
+       does. The schedule is a pure function of time, so the future is simply
+       another read of it. */
+    var SA = C.schedule.read(new Date(now + LOOKAHEAD_MS), L);
 
-    figure.update(dt, S, L, t);
+    figure.update(dt, S, L, t, SA);
     var pose = figure.pose(L, t);
 
     figFarCtx.clearRect(0, 0, L.w, L.h);
