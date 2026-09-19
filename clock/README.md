@@ -65,19 +65,82 @@ given minute of any given day always plays back identically.
 ## How the movement is made
 
 Nothing is keyframed and nothing loops. Each frame the schedule produces one
-point on the glass — the tip of the brush, or the corner of the cloth — and the
-body is solved backwards from it:
+point on the panel — the head of the brush, or the corner of the cloth — and
+the body is solved backwards from it:
 
 ```
 brush head -> grip on the shaft -> where the shoulder would have to be
            -> how far to lean, how deep to sit, where to stand -> knees
 ```
 
-Two-bone IK does the arms and the legs; a small solver decides how much of the
-reach is lean, how much is a bend in the knees, and — when neither is enough —
-where he has to stand instead. Low targets are answered with a squat, far ones
-with a twist across the body, and anything past that with a walk. The feet lag
-the walk, which is what makes it read as steps rather than sliding.
+It is a small biomechanical rig rather than a puppet, and three things do most
+of the work.
+
+**Real proportions.** Segment lengths are Winter's anthropometric table (after
+Drillis & Contini), as fractions of stature: shoulder at 0.818 H, hip 0.530,
+knee 0.285, ankle 0.039; upper arm 0.186, forearm 0.146, thigh 0.245, shank
+0.246; biacromial width 0.259, bi-iliac 0.191. The joint heights and the
+segment lengths agree with each other (0.530 − 0.285 = 0.245 = the thigh),
+which is what keeps the silhouette honest in any pose.
+
+**It is solved in 3D.** The panel is a plane in front of him, so reaching for
+it is reaching towards the camera. Limbs are solved with a *pole vector* — the
+joint is placed in the plane spanned by root-to-target and the pole, so knees
+bend forward, out of the screen, and elbows fall back and down — and the result
+is projected under a weak perspective. This is the single biggest change from
+the flat two-bone solve that came before it, where the joint was simply put on
+whichever side hung lower. A deep squat now reads as the thighs foreshortening
+away rather than the knees splaying sideways like a frog.
+
+**He has to stay up.** The horizontal centre of mass comes from Winter's
+segment masses — HAT (head, arms, trunk) 0.678 sitting 63% up from the hip,
+each leg 0.161 sitting 45% of the way down — which expands to a closed form:
+
+```
+com = 0.855 hip + 0.427 leanDX + 0.145 feetMid      (coefficients sum to 1)
+```
+
+Worth having in that form because it inverts: *where may the hips be, for the
+centre of mass to stay over his feet?* The pelvis is clamped to that answer
+every frame. He then keeps a second, unclamped position — where he would
+*like* his hips to be — and the gap between wanting and being allowed is what
+trips a step.
+
+Steps are one foot at a time, never both, with a real swing phase (~0.36 s,
+against a stance phase that is the other 60% of the cycle): minimum-jerk
+horizontally, a sine arc vertically, landing a natural stance width from the
+planted foot and never crossing it. Afterwards the pelvis height is clamped so
+that no planted leg can over-extend — which produces the hip dip over a wide
+stance for free, the inverted-pendulum effect, without modelling it.
+
+On top of that: trunk flexion is coupled to squat depth (a squat has to bring
+the chest forward or he falls over backwards), the spine flexes in three
+segments weighted towards the lumbar, the pelvis drops on the unloaded side
+whether that is a swinging leg or just his weight on one foot, the shoulder
+girdle rides up with a high reach, the head only partly follows the trunk
+because people stabilise their heads, the free hand comes onto the shaft for
+any stroke he commits to, and reaches use the minimum-jerk profile the motor
+system actually produces (10t³ − 15t⁴ + 6t⁵, a symmetric bell-shaped speed
+curve).
+
+### What that is worth checking against
+
+Balance and stepping systems fail by oscillating, and that is invisible in a
+screenshot. `tools/simtest.js` runs the rig headlessly for two minutes of
+simulated time and reports step count, direction reversals between consecutive
+steps of the same foot, hip travel, and how often the centre of mass leaves the
+support polygon. Healthy numbers are a handful of steps per minute, no
+double-support violations, and zero frames out of support.
+
+Three real failures were found that way and would not have been found by eye:
+the step loop took the feet in a fixed order, so walking right made the left
+foot step backwards forever; the pelvis clamp and the balance margin disagreed,
+so he stepped every frame he could; and the stance half-width was wider than
+the landing clamp allowed, so the feet could never satisfy both targets.
+
+Sources: Winter, *Biomechanics and Motor Control of Human Movement*, table of
+segment lengths after Drillis & Contini (1966); Flash & Hogan's minimum-jerk
+model; standard 60/40 stance-swing split.
 
 Over the top of that sit two things. Layers of value noise (sway, breath,
 tremor, the head drifting off its mark), and a per-beat **intent** — a fresh
