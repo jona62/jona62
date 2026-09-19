@@ -29,3 +29,27 @@ for (const f of fs.readdirSync(path.join(root, 'js'))) {
   fs.copyFileSync(path.join(root, 'js', f), path.join(dist, 'js', f));
 }
 console.log('wrote', path.relative(root, path.join(dist, 'artifact.html')));
+
+/* the lab, same treatment; its util import is rewritten to a flat path */
+const labSrc = path.join(root, 'lab');
+const labHtml = fs.readFileSync(path.join(labSrc, 'index.html'), 'utf8');
+const labTitle = /<title>([\s\S]*?)<\/title>/.exec(labHtml)[1];
+const labDesc = /<meta name="description" content="([\s\S]*?)"\s*\/?>/.exec(labHtml)[1];
+const labStyle = /<style>([\s\S]*?)<\/style>/.exec(labHtml)[1];
+const labBody = /<body>([\s\S]*?)<\/body>/.exec(labHtml)[1].trim()
+  .replace('../js/util.js', 'js/util.js');
+const labOut = `<title>${labTitle}</title>
+<meta name="description" content="${labDesc}" />
+<style>
+${labStyle.trim()}
+</style>
+${labBody}
+`;
+const labDist = path.join(root, 'dist', 'lab');
+fs.mkdirSync(path.join(labDist, 'js'), { recursive: true });
+fs.writeFileSync(path.join(labDist, 'artifact.html'), labOut);
+fs.copyFileSync(path.join(root, 'js', 'util.js'), path.join(labDist, 'js', 'util.js'));
+for (const f of ['body.js', 'render.js', 'lab.js']) {
+  fs.copyFileSync(path.join(labSrc, f), path.join(labDist, f));
+}
+console.log('wrote', path.relative(root, path.join(labDist, 'artifact.html')));
