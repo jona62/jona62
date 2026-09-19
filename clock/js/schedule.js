@@ -34,11 +34,11 @@
 
   /* Radii as fractions of the dial radius R. */
   var GEO = {
-    hub: 0.045,
-    minuteInner: 0.055, minuteOuter: 0.805,
-    hourInner: 0.052, hourOuter: 0.525,
-    secondTrackTop: 0.82, secondTrackDrop: 0.36,
-    inkX: 0.34, inkY: 0.70       /* the pot, on the floor of the case */
+    hub: 0.038,
+    minuteInner: 0.045, minuteOuter: 0.740,
+    hourInner: 0.042, hourOuter: 0.480,
+    secondTrackTop: 0.80, secondTrackDrop: 0.14,
+    inkX: 0.30, inkY: 0.66       /* the pot, on the floor beside him */
   };
 
   function minuteAngle(m) { return ((m % 60) + 60) % 60 / 60 * TAU; }

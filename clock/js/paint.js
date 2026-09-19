@@ -211,6 +211,9 @@
     ctx.restore();
   }
 
+  /* The markers are printed on the panel, not painted: crisp, black, and
+     identical every hour. Only the hands are hand-made — that contrast is the
+     whole point of the object. */
   function buildDial(L, ink, seed) {
     var cv = document.createElement('canvas');
     cv.width = Math.max(1, Math.round(L.w * L.dpr));
@@ -218,49 +221,30 @@
     var ctx = cv.getContext('2d');
     ctx.setTransform(L.dpr, 0, 0, L.dpr, 0, 0);
     var R = L.R, cx = L.cx, cy = L.cy;
-    var rnd = U.mulberry32(seed);
 
-    /* the painter's own not-quite-circle */
-    paintedArc(ctx, cx, cy, R * 0.968, 0, TAU, R * 0.006, 0.3, seed + 3, ink);
-
+    ctx.fillStyle = '#20232a';
     for (var i = 0; i < 60; i++) {
       var five = i % 5 === 0;
-      var a = i / 60 * TAU + (rnd() - 0.5) * 0.004;
-      var r0 = R * (five ? 0.895 : 0.932) + (rnd() - 0.5) * R * 0.006;
-      var r1 = R * 0.958 + (rnd() - 0.5) * R * 0.005;
-      drawHand(ctx, {
-        cx: cx, cy: cy, angle: a, rIn: r0, rOut: r1,
-        wBase: R * (five ? 0.019 : 0.0062), wTip: R * (five ? 0.013 : 0.0045),
-        frac: 1, bow: (rnd() - 0.5) * 0.01, seed: seed + i * 13,
-        alpha: five ? 0.62 : 0.4, color: ink, wet: 0
-      });
+      var a = i / 60 * TAU;
+      var r0 = R * (five ? 0.770 : 0.876);
+      var r1 = R * 0.949;
+      var w0 = R * (five ? 0.036 : 0.0105);
+      var w1 = R * (five ? 0.046 : 0.0125);
+      var sn = Math.sin(a), cs = Math.cos(a);
+      var px = cs, py = sn;                  /* across the marker */
+      var ix = cx + sn * r0, iy = cy - cs * r0;
+      var ox = cx + sn * r1, oy = cy - cs * r1;
+      ctx.globalAlpha = five ? 0.93 : 0.86;
+      ctx.beginPath();
+      ctx.moveTo(ix - px * w0 * 0.5, iy - py * w0 * 0.5);
+      ctx.lineTo(ox - px * w1 * 0.5, oy - py * w1 * 0.5);
+      ctx.lineTo(ox + px * w1 * 0.5, oy + py * w1 * 0.5);
+      ctx.lineTo(ix + px * w0 * 0.5, iy + py * w0 * 0.5);
+      ctx.closePath();
+      ctx.fill();
     }
-
-    /* Numerals, set in a serif and knocked about by hand. */
-    var size = R * 0.155;
-    ctx.font = '500 ' + size.toFixed(1) + 'px "Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = ink;
-    [[12, 0], [3, 3], [6, 6], [9, 9]].forEach(function (pair) {
-      var ang = pair[1] / 12 * TAU;
-      var p = U.polar(cx, cy, ang, R * 0.775);
-      ctx.save();
-      ctx.translate(p.x + (rnd() - 0.5) * R * 0.012, p.y + (rnd() - 0.5) * R * 0.012);
-      ctx.rotate((rnd() - 0.5) * 0.05);
-      ctx.globalAlpha = 0.46;
-      ctx.fillText(String(pair[0]), 0, 0);
-      ctx.globalAlpha = 0.4;
-      ctx.fillText(String(pair[0]), (rnd() - 0.5) * size * 0.03, (rnd() - 0.5) * size * 0.03);
-      /* dry-brush gaps through the glyph */
-      ctx.globalCompositeOperation = 'destination-out';
-      for (var k = 0; k < 7; k++) {
-        ctx.globalAlpha = 0.1 + rnd() * 0.28;
-        ctx.fillRect(-size * 0.75, -size * 0.6 + rnd() * size * 1.2, size * 1.5, size * (0.012 + rnd() * 0.03));
-      }
-      ctx.restore();
-    });
-
+    ctx.globalAlpha = 1;
+    void seed; void ink;
     return cv;
   }
 

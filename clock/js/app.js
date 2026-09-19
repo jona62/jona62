@@ -23,7 +23,8 @@
 
   var canvas, ctx, srTime;
   var figFar, figFarCtx, figNear, figNearCtx, figBlur, figBlurCtx;
-  var wallCv, veilCv, sheenCv, glossCv, marksCv, marksCtx;
+  var wallCv, housingCv, veilCv, sheenCv, glossCv, marksCv, marksCtx;
+  var diffuser;
   var texture, smearSprite;
   var L = null, figure = null, marksKey = -1;
   var last = 0, running = false, lastSrMinute = -1;
@@ -34,17 +35,18 @@
     var w = Math.max(240, global.innerWidth || 800);
     var h = Math.max(240, global.innerHeight || 600);
     var dpr = Math.min(dprCap, global.devicePixelRatio || 1);
-    /* The clock is a disc on a white wall and the painter is inside it: he
-       stands on the bottom of the case, a head shorter than the face is wide,
-       and everything beyond the glass edge is simply not shown. */
-    var R = Math.min(w * 0.455, h * 0.44);
-    var H = R * 1.8;
+    /* A brass box with a round aperture, and a man inside it who comes up to
+       about the six o'clock marker. He is small because he works on the end of
+       a long handle — which is also what lets him reach the twelve. */
+    var R = Math.min(w * 0.345, h * 0.325);
+    var H = R * 1.25;
     var cy = h * 0.5;
-    var feetY = cy + R * 0.88;
+    var feetY = cy + R * 0.78;
     return {
       w: w, h: h, dpr: dpr,
       cx: w * 0.5, cy: cy, R: R,
-      fig: { H: H, feetY: feetY, baseX: w * 0.5 + R * 0.18 }
+      fig: { H: H, feetY: feetY, baseX: w * 0.5 + R * 0.10 },
+      panel: { s: R * 2.72, x: w * 0.5 - R * 1.36, y: cy - R * 1.36 }
     };
   }
 
@@ -62,8 +64,15 @@
 
   function bakeWall() {
     var cv = makeCanvas(L.w, L.h, OVER_SCALE), c = cv._ctx;
-    C.glass.drawWall(c, L);
-    C.glass.drawCase(c, L);
+    C.glass.drawRoom(c, L);
+    C.glass.drawFace(c, L, diffuser);
+    return cv;
+  }
+
+  function bakeHousing() {
+    var cv = makeCanvas(L.w, L.h, OVER_SCALE), c = cv._ctx;
+    C.glass.drawHousing(c, L);
+    C.glass.drawApertureEdge(c, L);
     return cv;
   }
 
@@ -81,7 +90,6 @@
     c.clip();
     C.glass.drawStatics(c, L, texture);
     c.restore();
-    C.glass.drawRim(c, L);
     return cv;
   }
 
@@ -126,13 +134,13 @@
     for (k = 1; k <= HISTORY; k++) {
       age = k * 60 + S.sec - 48;
       if (age <= 0) continue;
-      a = 0.085 * Math.exp(-age / GHOST_LIFE);
+      a = 0.055 * Math.exp(-age / GHOST_LIFE);
       if (a < 0.006) continue;
       var gm = ((S.m - k) % 60 + 60) % 60;
       C.paint.drawHand(cx2, {
         cx: L.cx, cy: L.cy, angle: C.schedule.minuteAngle(gm),
         rIn: R * G.minuteInner, rOut: R * G.minuteOuter,
-        wBase: R * 0.031, wTip: R * 0.011, frac: 1,
+        wBase: R * 0.052, wTip: R * 0.042, frac: 1,
         bow: ((U.hash(gm) % 1000) / 1000 - 0.5) * 0.026,
         seed: U.hash(gm, 'm'), alpha: a, color: GHOST, wet: 0
       });
@@ -165,7 +173,7 @@
       C.paint.drawHand(cx2, {
         cx: L.cx, cy: L.cy, angle: S.minute.angle,
         rIn: R * G.minuteInner, rOut: R * G.minuteOuter,
-        wBase: R * 0.031, wTip: R * 0.011, frac: 1,
+        wBase: R * 0.050, wTip: R * 0.032, frac: 1,
         bow: ((U.hash(S.m) % 1000) / 1000 - 0.5) * 0.026,
         seed: U.hash(S.m, 'm'), alpha: 0.30 * (1 - S.minute.live), color: GHOST, wet: 0
       });
@@ -174,7 +182,7 @@
       C.paint.drawHand(cx2, {
         cx: L.cx, cy: L.cy, angle: S.hour.angle,
         rIn: R * G.hourInner, rOut: R * G.hourOuter,
-        wBase: R * 0.048, wTip: R * 0.017, frac: 1,
+        wBase: R * 0.074, wTip: R * 0.060, frac: 1,
         bow: 0.012, seed: U.hash(S.h, 'h'), alpha: 0.32 * (1 - S.hour.live),
         color: GHOST, wet: 0
       });
@@ -189,7 +197,7 @@
     C.paint.drawHand(cx2, {
       cx: L.cx, cy: L.cy, angle: S.hour.angle,
       rIn: R * G.hourInner, rOut: R * G.hourOuter,
-      wBase: R * 0.046, wTip: R * 0.016, frac: S.hour.live,
+      wBase: R * 0.076, wTip: R * 0.062, frac: S.hour.live,
       bow: ((hSeed % 1000) / 1000 - 0.5) * 0.02, seed: hSeed,
       alpha: 0.92, color: INK, wet: S.hour.wet, endSoft: true
     });
@@ -197,7 +205,7 @@
       C.paint.drawHand(cx2, {
         cx: L.cx, cy: L.cy, angle: S.hour.nextAngle,
         rIn: R * G.hourInner, rOut: R * G.hourOuter,
-        wBase: R * 0.046, wTip: R * 0.016, frac: S.hour.fresh,
+        wBase: R * 0.076, wTip: R * 0.062, frac: S.hour.fresh,
         bow: ((hNext % 1000) / 1000 - 0.5) * 0.02, seed: hNext,
         alpha: 0.92, color: INK, wet: 1, endSoft: true
       });
@@ -207,7 +215,7 @@
     C.paint.drawHand(cx2, {
       cx: L.cx, cy: L.cy, angle: S.minute.angle,
       rIn: R * G.minuteInner, rOut: R * G.minuteOuter,
-      wBase: R * 0.030, wTip: R * 0.0105, frac: S.minute.live,
+      wBase: R * 0.054, wTip: R * 0.044, frac: S.minute.live,
       bow: ((mSeed % 1000) / 1000 - 0.5) * 0.026, seed: mSeed,
       alpha: 0.9, color: INK, wet: S.minute.wet, endSoft: true
     });
@@ -216,7 +224,7 @@
       C.paint.drawHand(cx2, {
         cx: L.cx, cy: L.cy, angle: S.minute.nextAngle,
         rIn: R * G.minuteInner, rOut: R * G.minuteOuter,
-        wBase: R * 0.030, wTip: R * 0.0105, frac: S.minute.fresh,
+        wBase: R * 0.054, wTip: R * 0.044, frac: S.minute.fresh,
         bow: ((nSeed % 1000) / 1000 - 0.5) * 0.026, seed: nSeed,
         alpha: 0.9, color: INK, wet: 1, endSoft: true
       });
@@ -279,7 +287,9 @@
     var daySeed = U.hash(new Date().toDateString(), 'dial');
     dialLayer = C.paint.buildDial(L, INK, daySeed);
     texture = C.glass.buildTexture(L, daySeed + 17);
+    diffuser = C.glass.makeDiffuserTile(Math.max(3, Math.round(L.R * 0.016)));
     wallCv = bakeWall();
+    housingCv = bakeHousing();
     veilCv = bakeVeil();
     sheenCv = bakeSheen();
     glossCv = bakeGloss();
@@ -316,8 +326,8 @@
     ctx.beginPath();
     ctx.arc(L.cx, L.cy, L.R, 0, TAU);
     ctx.clip();
-    compositeFigure(figFar, L.R * 0.028, 0.74);
-    compositeFigure(figNear, L.R * 0.014, 0.82);
+    compositeFigure(figFar, L.R * 0.034, 0.82);
+    compositeFigure(figNear, L.R * 0.020, 0.88);
     ctx.drawImage(veilCv, 0, 0, L.w, L.h);
     drawTrail(ctx, now);
     ctx.drawImage(marksCv, 0, 0, L.w, L.h);
@@ -328,6 +338,7 @@
     ctx.drawImage(glossCv, U.lerp(-1.35, 0.15, drift) * L.w, 0, L.w * 2, L.h);
     ctx.drawImage(sheenCv, 0, 0, L.w, L.h);
     ctx.restore();
+    ctx.drawImage(housingCv, 0, 0, L.w, L.h);
 
     /* One-shot quality fallback: if the first couple of seconds are clearly
        not keeping up, drop to one device pixel per CSS pixel and stay there. */

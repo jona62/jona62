@@ -27,14 +27,20 @@
     crouchMax: 0.42
   };
 
+  /* Workwear, read through a diffuser with the light behind it: saturated
+     mid-tones rather than darks, or he turns into a silhouette. */
   var PALETTES = [
-    { shirt: '#4e6079', shirtDark: '#3b4a60', trouser: '#39404c', hair: '#33241d', skin: '#c8a086' },
-    { shirt: '#7c5a4a', shirtDark: '#654639', trouser: '#3f4348', hair: '#1f1a18', skin: '#a97b5c' },
-    { shirt: '#5f6b52', shirtDark: '#4a553f', trouser: '#37393c', hair: '#5a4230', skin: '#d8b596' },
-    { shirt: '#6a5b78', shirtDark: '#544763', trouser: '#3c3a44', hair: '#241c1a', skin: '#8e6a52' },
-    { shirt: '#8a7a5e', shirtDark: '#6d604a', trouser: '#414247', hair: '#3f3028', skin: '#c99a7b' },
-    { shirt: '#44686a', shirtDark: '#345254', trouser: '#3a3f42', hair: '#2a211d', skin: '#b98d6e' }
+    { shirt: '#5f77d4', shirtDark: '#4a60bd', trouser: '#4a5cb4', hair: '#4a3a2e', skin: '#d5a684', cap: '#42539f', tool: '#c6d451' },
+    { shirt: '#4f8ad0', shirtDark: '#3d73b6', trouser: '#3f4f7a', hair: '#2e2620', skin: '#b9825f', cap: '#2f4e86', tool: '#dcc94e' },
+    { shirt: '#5a86c8', shirtDark: '#4570b0', trouser: '#46538a', hair: '#3c2c22', skin: '#dcae88', cap: '#3a5ea0', tool: '#dcc94e' },
+    { shirt: '#e08a46', shirtDark: '#c4713a', trouser: '#55607a', hair: '#3c2c22', skin: '#dcae88', cap: '#c96f34', tool: '#7fb6d8' },
+    { shirt: '#63a878', shirtDark: '#4d8c62', trouser: '#4b5566', hair: '#231c18', skin: '#a9784f', cap: '#3f7a56', tool: '#e0d264' },
+    { shirt: '#8b8fa6', shirtDark: '#71768d', trouser: '#565c72', hair: '#5a4632', skin: '#dbb191', cap: '#6a708a', tool: '#d9d25c' },
+    { shirt: '#cf6f72', shirtDark: '#b25a5f', trouser: '#4d5364', hair: '#2b211c', skin: '#c79471', cap: '#a9525a', tool: '#9fc9d6' }
   ];
+
+  var POLE_BRUSH = 0.80;   /* handle lengths, in dial radii */
+  var POLE_CLOTH = 0.60;
 
   /* Global motion scale: trimmed back under prefers-reduced-motion. */
   function mo() { return C.motion == null ? 1 : C.motion; }
@@ -109,9 +115,9 @@
     /* Standing inside the case, most of the face is out of arm's reach, so he
        walks to the work. The dead band matters more than the speed: people
        plant themselves and stay put until staying put stops working. */
-    var band = L.R * 0.34;
-    var want = U.clamp(T.x + (brushSide ? 0.22 : -0.22) * H, L.cx - band, L.cx + band);
-    if (Math.abs(want - s.walkTo) > 0.17 * H) s.walkTo = want;
+    var band = L.R * 0.30;
+    var want = U.clamp(L.cx + (T.x - L.cx) * 0.42, L.cx - band, L.cx + band);
+    if (Math.abs(want - s.walkTo) > 0.14 * H) s.walkTo = want;
     s.walkTo = U.clamp(s.walkTo, L.cx - band, L.cx + band);
     s.walkX = U.damp(s.walkX, s.walkTo, 1.25, dt);
     var baseX = s.walkX;
@@ -133,25 +139,38 @@
       y: chestY + I.clothRest.y * H + n[3].fbm(t * 0.18 + 9) * 0.022 * H * mo()
     };
 
-    var kA = U.lerp(46, 320, tight), cA = U.lerp(10.5, 34, tight);
+    /* The shaft runs from the work to a hold point near his chest, so it can
+       never swing to a strange angle when the work comes close to him. */
+    var anchorX = chestX + perpX * sideSign * 0.06 * H;
+    var anchorY = chestY + 0.16 * H;
+    var toWork = { x: U.lerp(anchorX, T.x, 0.12), y: U.lerp(anchorY, T.y, 0.10) };
+
+    var kA = U.lerp(46, 300, tight), cA = U.lerp(10.5, 33, tight);
     var kR = 30, cR = 9;
     if (brushSide) {
-      spring(s, 'hbx', T.x, kA, cA, dt); spring(s, 'hby', T.y, kA, cA, dt);
+      spring(s, 'hbx', toWork.x, kA, cA, dt); spring(s, 'hby', toWork.y, kA, cA, dt);
       spring(s, 'hcx', restC.x, kR, cR, dt); spring(s, 'hcy', restC.y, kR, cR, dt);
     } else {
-      spring(s, 'hcx', T.x, kA, cA, dt); spring(s, 'hcy', T.y, kA, cA, dt);
+      spring(s, 'hcx', toWork.x, kA, cA, dt); spring(s, 'hcy', toWork.y, kA, cA, dt);
       spring(s, 'hbx', restB.x, kR, cR, dt); spring(s, 'hby', restB.y, kR, cR, dt);
     }
 
-    /* The tool always meets the glass at the exact point the schedule asked
-       for; the spring only decides from which direction the hand comes at it. */
-    var toolLen = (brushSide ? P.handLen * 1.55 : P.handLen * 0.8) * H;
-    var ax = (brushSide ? s.hbx : s.hcx) - T.x;
-    var ay = (brushSide ? s.hby : s.hcy) - T.y;
-    var ad = Math.hypot(ax, ay);
-    if (ad < 1e-3) { ax = sideSign * 0.4; ay = 0.9; ad = 1; }
-    var wrist = { x: T.x + (ax / ad) * toolLen, y: T.y + (ay / ad) * toolLen };
-    this.tool = { tip: T, base: wrist, side: S.active.side, tight: tight };
+    /* He works on the end of a long handle — that is how a man who only comes
+       up to the six o'clock marker paints the twelve. The head of the tool is
+       pinned to the exact scheduled point; the hand slides up and down the
+       shaft depending on how far away the work is, the way you choke up on a
+       brush for close work. */
+    var poleLen = (brushSide ? POLE_BRUSH : POLE_CLOTH) * L.R;
+    var gx = (brushSide ? s.hbx : s.hcx) - T.x;
+    var gy = (brushSide ? s.hby : s.hcy) - T.y;
+    var gd = Math.hypot(gx, gy);
+    if (gd < 1e-3) { gx = sideSign * 0.3; gy = 0.95; gd = 1; }
+    /* He holds the shaft as far down as the work is away — choked right up for
+       close work, out at the end of it for the twelve. Beyond the shaft's
+       length the body has to do the rest, which is what moves him. */
+    var grip = U.clamp(gd, L.R * 0.10, poleLen);
+    var wrist = { x: T.x + (gx / gd) * grip, y: T.y + (gy / gd) * grip };
+    this.tool = { tip: T, base: wrist, side: S.active.side, tight: tight, len: grip };
 
     /* --- solve the body from the working wrist --- */
     var armLen = (P.upperArm + P.foreArm) * H;
@@ -358,9 +377,13 @@
     far.beginPath();
     far.ellipse(p.head.yaw * p.head.rx * 0.16, p.head.ry * 0.06, p.head.rx * 0.94, p.head.ry * 0.92, 0, 0, U.TAU);
     far.fill();
-    far.fillStyle = pal.hair;          /* fringe */
+    far.fillStyle = pal.cap;           /* cap, crown then peak */
     far.beginPath();
-    far.ellipse(p.head.yaw * p.head.rx * 0.2, -p.head.ry * 0.52, p.head.rx * 1.02, p.head.ry * 0.5, 0, 0, U.TAU);
+    far.ellipse(p.head.yaw * p.head.rx * 0.18, -p.head.ry * 0.46, p.head.rx * 1.12, p.head.ry * 0.62, 0, 0, U.TAU);
+    far.fill();
+    far.beginPath();
+    far.ellipse(p.head.yaw * p.head.rx * 1.05, -p.head.ry * 0.30, p.head.rx * 0.72, p.head.ry * 0.22,
+      p.head.yaw * 0.25, 0, U.TAU);
     far.fill();
     far.restore();
 
@@ -389,33 +412,42 @@
 
     if (p.tool) {
       var tp = p.tool.tip, bp = p.tool.base;
+      var tdx = bp.x - tp.x, tdy = bp.y - tp.y;
+      var tdl = Math.hypot(tdx, tdy) || 1e-6;
+      var ux = tdx / tdl, uy = tdy / tdl;
+      var butt = 0.05 * H;                    /* a little shaft past his hand */
+      var shaft = 0.020 * H;
+
+      near.save();
+      near.lineCap = 'round';
+      near.strokeStyle = '#6d5b45';
+      near.lineWidth = shaft;
+      near.beginPath();
+      near.moveTo(tp.x, tp.y);
+      near.lineTo(bp.x + ux * butt, bp.y + uy * butt);
+      near.stroke();
+
       if (p.tool.side === 'brush') {
-        near.strokeStyle = '#5b4632';
-        near.lineCap = 'round';
-        near.lineWidth = 0.014 * H;
-        near.beginPath(); near.moveTo(bp.x, bp.y); near.lineTo(tp.x, tp.y); near.stroke();
-        near.strokeStyle = '#2b2622';
-        near.lineWidth = 0.017 * H;
+        near.strokeStyle = '#26242a';
+        near.lineWidth = shaft * 1.5;
         near.beginPath();
-        near.moveTo(U.lerp(bp.x, tp.x, 0.55), U.lerp(bp.y, tp.y, 0.55));
-        near.lineTo(tp.x, tp.y);
+        near.moveTo(tp.x, tp.y);
+        near.lineTo(tp.x + ux * 0.055 * H, tp.y + uy * 0.055 * H);
         near.stroke();
       } else {
-        near.fillStyle = '#c0ae93';
-        near.save();
-        near.translate(U.lerp(bp.x, tp.x, 0.45), U.lerp(bp.y, tp.y, 0.45));
-        near.rotate(Math.atan2(tp.y - bp.y, tp.x - bp.x));
+        near.fillStyle = pal.tool;
+        near.translate(tp.x + ux * 0.030 * H, tp.y + uy * 0.030 * H);
+        near.rotate(Math.atan2(-uy, -ux));
         near.beginPath();
-        near.ellipse(0, 0, 0.050 * H, 0.036 * H, 0, 0, U.TAU);
+        near.ellipse(0, 0, 0.075 * H, 0.055 * H, 0, 0, U.TAU);
         near.fill();
-        near.globalAlpha = 0.5;
-        near.fillStyle = '#9d8d74';
-        near.beginPath();
-        near.ellipse(-0.012 * H, 0.008 * H, 0.030 * H, 0.020 * H, 0.4, 0, U.TAU);
-        near.fill();
-        near.globalAlpha = 1;
-        near.restore();
       }
+      near.restore();
+
+      near.fillStyle = pal.skin;         /* the gripping hand, on the shaft */
+      near.beginPath();
+      near.arc(bp.x, bp.y, 0.027 * H, 0, U.TAU);
+      near.fill();
     }
   };
 

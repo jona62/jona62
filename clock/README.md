@@ -1,23 +1,33 @@
 # The Minute Painter
 
-An analogue clock with no moving parts. Inside the case, behind the glass,
-stands someone with a brush and a rag, and they paint the hands — one minute
-stroke at a time, for as long as the tab is open.
+An analogue clock with no moving parts: a brass box with a round aperture and
+a lit panel behind it, and standing on that panel, someone with a brush on a
+long handle. They paint the hands — one minute stroke at a time, for as long as
+the tab is open.
 
 Open `index.html`. There is nothing to click.
 
+Built after Maarten Baas's *Real Time* — the Schiphol clock, where a performer
+wipes and redraws the hands from behind the glass. This is not a recording of
+one; the figure is a rig being solved in real time against your own system
+clock.
+
 ## The conceit
 
-A glass disc on a white wall. The paint is on the back of the glass, which is
-the painter's side, so the marks are sharp and the painter is not: you can
-follow the colour of their shirt and the outline of their hair, and you will
-never see their face. Nothing of them is ever visible outside the rim — the man
-is in the clock, and the clock is all there is to see.
+The face is a backlit diffuser panel, so the light is *behind* him. That is why
+he reads the way he does: a colour-bled shape, overalls and cap legible, blown
+out at every edge, with nothing of his face surviving the diffusion. Nothing of
+him is drawn outside the aperture — the man is in the clock, and the clock is
+all there is to see.
 
-The face is wider than he is tall, so most of it is out of arm's reach from
-where he happens to be standing. He walks to the work, plants himself, and
-stays there until staying there stops working. The bottom of the dial is around
-his own feet, so the six o'clock end of a stroke is painted from a deep squat.
+The markers are printed on the panel: crisp, black, identical every hour. Only
+the hands are hand-made. That contrast is the whole object.
+
+He comes up to about the six o'clock marker, which means most of the face is
+out of arm's reach — so he works on the end of a long handle, holding it choked
+right up for work near the hub and out at the very end of it to reach the
+twelve. When even that runs out he walks, plants himself, and stays there until
+staying there stops working.
 
 **Every minute they wipe the minute hand off and repaint it**, and the stroke
 is timed so that the last of the paint lands at the exact instant minute *n*
@@ -26,12 +36,11 @@ a ghost, and each pass of the cloth leaves a haze. Both build up, and both are
 why the pane needs the bigger clean at the quarter.
 
 **There is no second hand.** There is what they are doing instead: for most of
-the minute the brush hovers just off the glass, going round with the seconds,
-trailing a damp mark in the frost that takes a few seconds to dry. Read the
-seconds off the angle from the hub to the brush — the *distance* varies,
-because the hovering brush rides near the rim at the top and pulls in towards
-the middle at the bottom, which is the shape of what a person standing in there
-can actually reach.
+the minute the brush head hovers just off the panel, going round with the
+seconds, trailing a damp mark that takes a few seconds to dry. Read the seconds
+off the angle from the hub to the brush — the *distance* varies a little,
+because the track pulls in towards the middle at the bottom, where the panel is
+past his own feet.
 
 ## One minute
 
@@ -40,7 +49,7 @@ can actually reach.
 | 0 – 3 | peeling away from the stroke they just finished |
 | 3 – ~40 | the brush tracks the seconds around the face |
 | ~40 – ~48 | cloth in the other hand, wiping the minute hand away, tip first |
-| ~48 – ~51 | down to the ink, load the brush, back up to the pivot |
+| ~48 – ~51 | down to the pot at his feet, load the brush, back up to the pivot |
 | ~51 – 60.000 | the stroke, pivot to tip, finishing exactly on the turn |
 
 The hour hand is repainted on the minute before each quarter — :14, :29, :44,
@@ -60,8 +69,8 @@ point on the glass — the tip of the brush, or the corner of the cloth — and 
 body is solved backwards from it:
 
 ```
-brush tip -> wrist -> where the shoulder would have to be
-          -> how far to lean and how deep to sit -> knees -> feet
+brush head -> grip on the shaft -> where the shoulder would have to be
+           -> how far to lean, how deep to sit, where to stand -> knees
 ```
 
 Two-bone IK does the arms and the legs; a small solver decides how much of the
@@ -77,9 +86,10 @@ wants to hang, taken every time the minute or the phase changes. The body is
 always arriving at a slightly different version of the same position, which is
 the difference between a person and a mechanism.
 
-The tool tip is pinned to the exact scheduled point and the hand is placed
-behind it, so the paint and the brush always agree no matter how much the arm
-lags.
+The tool head is pinned to the exact scheduled point and the grip is placed
+back along the shaft towards his chest, so the paint and the brush always agree
+no matter how much the arm lags, and the handle can never swing to an
+impossible angle.
 
 ## Time in, pixels out
 
@@ -96,7 +106,7 @@ computed from each mark's age, not painted into a texture.
 | `js/schedule.js` | the choreography clock — phases, hand geometry, where the working hand is |
 | `js/paint.js` | brush strokes, ghosts, cloth smears, the dial |
 | `js/figure.js` | the skeleton, the reach solver, the drawing of the person |
-| `js/glass.js` | wall, case, frost, grain, reflections, rim, travelling gloss |
+| `js/glass.js` | wall, brass housing, lit panel, diffusion, grain, cover glass |
 | `js/app.js` | layout, layer baking, the frame loop |
 
 Plain scripts, no build step, no dependencies, no network calls. It runs from
@@ -111,8 +121,9 @@ the document wrapper into `dist/`.
 ## Performance
 
 Everything that does not change between frames is baked into a layer once and
-blitted: the wall and the case, the milky pane, the grain, reflections and rim,
-the dial, and the fan of old ghosts (rebuilt once a second). Everything inside
+blitted: the wall and lit panel, the brass housing with its aperture punched
+out, the diffusion, the grain, the printed markers, and the fan of old ghosts
+(rebuilt once a second). Everything inside
 the glass is drawn under a single circular clip. The figure is blurred at 55% of
 display resolution, which is cheap as well as being the right amount of soft.
 Live per frame: the person, the damp trail, and the three or four brush strokes
@@ -133,9 +144,11 @@ idle sway and wandering attention; the painting itself still has to happen.
 | `figure.js` `PALETTES` | clothes, hair, skin — one is picked per day |
 | `figure.js` `rollIntent()` | how much the stance varies between beats |
 | `app.js` `GHOST_LIFE` / `SMEAR_LIFE` | how long the glass remembers |
+| `figure.js` `POLE_BRUSH` / `POLE_CLOTH` | handle lengths, in dial radii |
 | `figure.js` `P.crouchMax` | how far down a squat can go |
 | `figure.js` walk block | the dead band and the strip he paces |
-| `app.js` `measure()` | dial size, how tall he is inside it |
+| `app.js` `measure()` | aperture size, box size, how tall he is inside it |
+| `app.js` `drawHands()` | hand weights — these are marker strokes, not needles |
 | `app.js` `compositeFigure` calls | how far behind the glass they read |
 
 ## Development
