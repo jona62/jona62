@@ -27,7 +27,7 @@
   var wallCv, housingCv, veilCv, sheenCv, glossCv, marksCv, marksCtx;
   var diffuser;
   var texture, smearSprite;
-  var L = null, figure = null, marksKey = -1;
+  var L = null, figure = null, marksKey = -1, fig3d = null;
   var last = 0, running = false, lastSrMinute = -1;
   var supportsFilter = false;
   var frameCount = 0, frameSum = 0, downgraded = false, dprCap = 1.75;
@@ -282,6 +282,7 @@
     ctx.setTransform(L.dpr, 0, 0, L.dpr, 0, 0);
 
     figFar = makeCanvas(L.w, L.h, FIG_SCALE); figFarCtx = figFar._ctx;
+    if (fig3d) fig3d.resize(L, FIG_SCALE);
     figNear = makeCanvas(L.w, L.h, FIG_SCALE); figNearCtx = figNear._ctx;
     figBlur = makeCanvas(L.w, L.h, FIG_SCALE); figBlurCtx = figBlur._ctx;
 
@@ -320,7 +321,14 @@
 
     figFarCtx.clearRect(0, 0, L.w, L.h);
     figNearCtx.clearRect(0, 0, L.w, L.h);
-    figure.draw(figFarCtx, figNearCtx, pose, L);
+    if (fig3d) {
+      /* The body is a lit, lofted, three-dimensional thing; the panel then
+         does to it exactly what it did to the flat one. */
+      figFarCtx.drawImage(fig3d.render(figure.worldPose()), 0, 0, L.w, L.h);
+      figure.drawTool(figNearCtx, pose, L, null);
+    } else {
+      figure.draw(figFarCtx, figNearCtx, pose, L);
+    }
     figure.fade(figFarCtx, L);
 
     var key = Math.floor(now / 1000);
@@ -332,7 +340,7 @@
     ctx.beginPath();
     ctx.arc(L.cx, L.cy, L.R, 0, TAU);
     ctx.clip();
-    compositeFigure(figFar, L.R * 0.034, 0.82);
+    compositeFigure(figFar, L.R * (fig3d ? 0.026 : 0.034), fig3d ? 0.86 : 0.82);
     compositeFigure(figNear, L.R * 0.020, 0.88);
     ctx.drawImage(veilCv, 0, 0, L.w, L.h);
     drawTrail(ctx, now);
@@ -380,6 +388,16 @@
     smearSprite = C.paint.makeSmearSprite();
     figure = new C.Figure(U.hash(new Date().toDateString(), 'painter'));
 
+    /* Render the painter in three dimensions where we can, and fall back to
+       the flat renderer where we cannot — no WebGL, no three.js, no figure. */
+    if (global.THREE && C.Figure3D && C.Skin3D) {
+      try {
+        fig3d = new C.Figure3D(global.THREE, figure.palette);
+      } catch (e) {
+        fig3d = null;
+      }
+    }
+
     var reduce = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
     C.motion = reduce ? 0.35 : 1;
 
@@ -406,6 +424,14 @@
     running = true;
     last = global.performance.now();
     global.requestAnimationFrame(frame);
+
+    /* One handle for the screenshot tools, so the figure layer can be read
+       back before the glass diffuses it. Costs nothing at runtime. */
+    C.dev = { figure: function () { return figure; },
+              layer: function () { return figFar; },
+              near: function () { return figNear; },
+              three: function () { return fig3d; },
+              layout: function () { return L; } };
   }
 
   if (document.readyState === 'loading') {

@@ -123,6 +123,16 @@
     this.stepPhase = 0;
   }
 
+  /* Feet do not point where the pelvis points. Standing, they toe out by the
+     Fick angle — about 12 degrees each — and that splay closes as the stride
+     opens, because a long stride swings the foot in line with travel. Square
+     feet are the loudest tell that a figure is a puppet, and from straight on
+     they foreshorten into two discs. */
+  var FICK = 0.21;
+  function footYawT(body, f, closing) {
+    return body.yaw + f.side * FICK * (1 - (closing || 0));
+  }
+
   Body.prototype.fwd = function () { return v(Math.sin(this.yaw), 0, Math.cos(this.yaw)); };
   Body.prototype.right = function () { return v(Math.cos(this.yaw), 0, -Math.sin(this.yaw)); };
   Body.prototype.jump = function () { if (this.state === 'ground') { this.state = 'jumpCrouch'; this.stateT = 0; } };
@@ -176,7 +186,7 @@
         fa.x = U.damp(fa.x, home.x, 9, dt); fa.z = U.damp(fa.z, home.z, 9, dt);
         fa.lift = U.damp(fa.lift, 0.11 * H, 8, dt);
         fa.roll = U.damp(fa.roll, 0.5, 6, dt);
-        fa.yaw = angDamp(fa.yaw, this.yaw, 6, dt);
+        fa.yaw = angDamp(fa.yaw, footYawT(this, fa), 6, dt);
       }
       this.stepPhase = 0;
       return;
@@ -212,7 +222,7 @@
           if (f.state === 'swing') { f.state = 'plant'; f.x = f.tx; f.z = f.tz; f.lift = 0; }
           f.roll = U.damp(f.roll, local > duty * 0.7 ? 0.7 : 0, 8, dt);
         }
-        f.yaw = angDamp(f.yaw, this.yaw, 7, dt);
+        f.yaw = angDamp(f.yaw, footYawT(this, f, U.clamp(speed / (RUN * H), 0, 1) * 0.8), 7, dt);
       }
       this.stepPhase = Math.sin(this.gaitPhase * TAU);
       this.s.weightCmd = 0;
@@ -260,7 +270,7 @@
             this.s.weightCmd = 0; this.lock = LOCK;
           }
         } else fs.roll = U.damp(fs.roll, 0, 6, dt);
-        fs.yaw = angDamp(fs.yaw, this.yaw, 5, dt);
+        fs.yaw = angDamp(fs.yaw, footYawT(this, fs), 5, dt);
       }
       this.stepPhase = feet[0].state === 'swing' ? -feet[0].t / SWING
         : (feet[1].state === 'swing' ? feet[1].t / SWING : 0);
@@ -543,8 +553,11 @@
 
     var handL = this.handWorld('L') || add(shL, v(0, -0.3 * H, 0));
     var handR = this.handWorld('R') || add(shR, v(0, -0.3 * H, 0));
-    var poleL = norm(add(mul(fwd, -1), add(v(0, -0.6, 0), mul(rgt, -0.45))));
-    var poleR = norm(add(mul(fwd, -1), add(v(0, -0.6, 0), mul(rgt, 0.45))));
+    /* Elbows go back and down, and barely out. The lateral term used to be
+       large enough that any bent arm threw the elbow wide of the ribs, which
+       from the front collapses the whole upper arm into the shoulder. */
+    var poleL = norm(add(mul(fwd, -1), add(v(0, -0.85, 0), mul(rgt, -0.24))));
+    var poleR = norm(add(mul(fwd, -1), add(v(0, -0.85, 0), mul(rgt, 0.24))));
     var elbL = ik(shL, handL, P.upperArm * H, P.foreArm * H, poleL, P.elbowMin * H);
     var elbR = ik(shR, handR, P.upperArm * H, P.foreArm * H, poleR, P.elbowMin * H);
 

@@ -36,7 +36,7 @@
   /* The torso carries the shoulder line: stop it at the chest and the shoulder
      joint, 0.129 H out, floats clear of the ribcage with nothing under the
      sleeve — which is what puts a man in shoulder pads. */
-  var TORSO = [[0, 0.076], [0.13, 0.081], [0.36, 0.089], [0.58, 0.095], [0.74, 0.099], [0.86, 0.090], [0.94, 0.072], [1, 0.050]];
+  var TORSO = [[0, 0.076], [0.13, 0.081], [0.36, 0.089], [0.58, 0.095], [0.78, 0.100], [0.90, 0.097], [1, 0.070]];
   var NECK = [[0, 0.046], [0.5, 0.036], [1, 0.033]];
   var FOOT = [[0, 0.022], [0.25, 0.033], [0.72, 0.031], [1, 0.018]];
 
@@ -211,8 +211,8 @@
       self.group.add(m);
       self[name] = m;
     };
-    jointBall('deltL', 0.042, this.m.shirt, 1.04, 1.0, 0.92);
-    jointBall('deltR', 0.042, this.m.shirt, 1.04, 1.0, 0.92);
+    jointBall('deltL', 0.047, this.m.shirt, 1.02, 1.06, 0.92);
+    jointBall('deltR', 0.047, this.m.shirt, 1.02, 1.06, 0.92);
     jointBall('hipBL', 0.044, this.m.trouser, 1, 1, 0.9);
     jointBall('hipBR', 0.044, this.m.trouser, 1, 1, 0.9);
 
@@ -253,8 +253,12 @@
        shirt tucks inside them */
     var below = V.add(p.pelvis, { x: 0, y: -0.072 * H, z: 0 });
     this.hips.set([below, V.lerp(below, p.pelvis, 0.6), p.pelvis, sp[1]], HIPS, H, right, 0.88);
-    this.torso.set([V.lerp(p.pelvis, sp[1], 0.35), sp[1], sp[2], p.chest,
-      V.lerp(p.chest, p.neck, 0.75)], TORSO, H, right, 0.74, 1);
+    /* The spine ends at the acromion line, so the trunk must carry a yoke of
+       its own above it: stop the loft at the chest and the shoulder joint,
+       0.129 H out, hangs off nothing and the sleeve reads as a pad. */
+    this.torso.set([V.lerp(p.pelvis, sp[1], 0.35), sp[1], sp[2],
+      V.lerp(p.pelvis, p.chest, 0.94), p.chest,
+      V.add(p.chest, { x: 0, y: 0.028 * H, z: 0 })], TORSO, H, right, 0.74, 1);
 
     /* The humeral head is medial to the point of the shoulder, so hang the arm
        from inboard of the acromion — otherwise the sleeve and the deltoid stack
@@ -263,8 +267,8 @@
     this.armL.set([rootL, p.elbL, p.handL], ARM, H, right, 0.94);
     this.armR.set([rootR, p.elbR, p.handR], ARM, H, right, 0.94);
     /* tucked in and down from the acromion, so the sleeve is what you see */
-    var dl = V.add(V.lerp(p.shL, p.chest, 0.20), { x: 0, y: -0.006 * H, z: 0 });
-    var dr = V.add(V.lerp(p.shR, p.chest, 0.20), { x: 0, y: -0.006 * H, z: 0 });
+    var dl = V.add(V.lerp(p.shL, p.chest, 0.12), { x: 0, y: -0.016 * H, z: 0 });
+    var dr = V.add(V.lerp(p.shR, p.chest, 0.12), { x: 0, y: -0.016 * H, z: 0 });
     this.deltL.position.set(dl.x, dl.y, dl.z);
     this.deltR.position.set(dr.x, dr.y, dr.z);
     this.sleeveL.set([rootL, V.lerp(p.shL, p.elbL, 0.35), V.lerp(p.shL, p.elbL, 0.70)], SLEEVE, H, right, 0.94);

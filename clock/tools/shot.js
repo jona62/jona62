@@ -20,7 +20,7 @@ if (!times.length) times.push('10:37:20');
   for (const t of times) {
     const [hh, mm, ss] = t.split(':').map(Number);
     const base = new Date(2026, 8, 19, hh, mm, ss || 0, 0).getTime() - SETTLE;
-    const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 1, ignoreHTTPSErrors: true });
     await page.addInitScript(`(() => {
       const BASE = ${base};
       const RealDate = Date;

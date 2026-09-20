@@ -15,9 +15,14 @@
     <p id="srtime" class="visually-hidden" role="status" aria-live="polite"></p>
     <noscript><p class="nojs">This clock is painted in real time and needs JavaScript to run.</p></noscript>
   </main>
+  <!-- three.js r160 (UMD), vendored so the clock still runs offline. If it
+       fails to load, the painter falls back to the flat renderer. -->
+  <script src="js/vendor/three.min.js"></script>
   <script src="js/util.js"></script>
   <script src="js/rig.js"></script>
   <script src="js/draw2d.js"></script>
+  <script src="js/skin3d.js"></script>
+  <script src="js/figure3d.js"></script>
   <script src="js/schedule.js"></script>
   <script src="js/paint.js"></script>
   <script src="js/figure.js"></script>

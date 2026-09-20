@@ -23,11 +23,20 @@ ${css.trim()}
 ${body}
 `;
 
+/* js/ now holds a vendor/ directory as well as the modules, so copy the tree
+   rather than assuming every entry is a file. */
+function copyTree(from, to) {
+  fs.mkdirSync(to, { recursive: true });
+  for (const f of fs.readdirSync(from)) {
+    const src = path.join(from, f), dst = path.join(to, f);
+    if (fs.statSync(src).isDirectory()) copyTree(src, dst);
+    else fs.copyFileSync(src, dst);
+  }
+}
+
 fs.mkdirSync(path.join(dist, 'js'), { recursive: true });
 fs.writeFileSync(path.join(dist, 'artifact.html'), out);
-for (const f of fs.readdirSync(path.join(root, 'js'))) {
-  fs.copyFileSync(path.join(root, 'js', f), path.join(dist, 'js', f));
-}
+copyTree(path.join(root, 'js'), path.join(dist, 'js'));
 console.log('wrote', path.relative(root, path.join(dist, 'artifact.html')));
 
 /* the lab, same treatment; its util import is rewritten to a flat path */
@@ -63,14 +72,13 @@ const d3 = /<meta name="description" content="([\s\S]*?)"\s*\/?>/.exec(h3)[1];
 const s3 = /<style>([\s\S]*?)<\/style>/.exec(h3)[1];
 const b3 = /<body>([\s\S]*?)<\/body>/.exec(h3)[1].trim().replace(/\.\.\/js\//g, 'js/');
 const dist3 = path.join(root, 'dist', 'lab3d');
-fs.mkdirSync(path.join(dist3, 'js'), { recursive: true });
-fs.mkdirSync(path.join(dist3, 'vendor'), { recursive: true });
+fs.mkdirSync(path.join(dist3, 'js', 'vendor'), { recursive: true });
 fs.writeFileSync(path.join(dist3, 'artifact.html'),
   `<title>${t3}</title>\n<meta name="description" content="${d3}" />\n<style>\n${s3.trim()}\n</style>\n${b3}\n`);
-fs.copyFileSync(path.join(root, 'js', 'util.js'), path.join(dist3, 'js', 'util.js'));
-fs.copyFileSync(path.join(l3, 'vendor', 'three.min.js'), path.join(dist3, 'vendor', 'three.min.js'));
-fs.copyFileSync(path.join(root, 'js', 'rig.js'), path.join(dist3, 'js', 'rig.js'));
-for (const f of ['skin3d.js', 'lab3d.js']) {
-  fs.copyFileSync(path.join(l3, f), path.join(dist3, f));
+for (const f of ['util.js', 'rig.js', 'skin3d.js']) {
+  fs.copyFileSync(path.join(root, 'js', f), path.join(dist3, 'js', f));
 }
+fs.copyFileSync(path.join(root, 'js', 'vendor', 'three.min.js'),
+  path.join(dist3, 'js', 'vendor', 'three.min.js'));
+fs.copyFileSync(path.join(l3, 'lab3d.js'), path.join(dist3, 'lab3d.js'));
 console.log('wrote', path.relative(root, path.join(dist3, 'artifact.html')));

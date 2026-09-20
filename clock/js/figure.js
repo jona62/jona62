@@ -16,7 +16,11 @@
   var C = global.CLOCK, U = C.util, R3 = C.rig;
   var V = { v: R3.v, add: R3.add, sub: R3.sub, mul: R3.mul, len: R3.len, norm: R3.norm };
 
-  var GLASS_Z = 0.15;
+  /* How far the panel stands off him, in heights. At 0.15 the glass was
+     inside his own reach envelope: every hold landed in front of the pane and
+     the elbow stayed folded to the ribs. A painter works at about a third of
+     his height from the wall, which is also what lets the arm straighten. */
+  var GLASS_Z = 0.32;
   var POLE_BRUSH = 0.80, POLE_CLOTH = 0.60;
   var REGRIP = 0.20;
 
@@ -61,7 +65,10 @@
       this.body.want = V.v(this.body.pos.x, 0, 0);
       this.body.feet[0].x = this.body.pos.x - 0.065 * L.fig.H;
       this.body.feet[1].x = this.body.pos.x + 0.065 * L.fig.H;
-      this.body.ctl.faceTo = 0;          /* he always faces the glass */
+      /* He addresses the glass, but nobody stands square to their work: the
+         shoulders sit a few degrees off, which is also what gives the figure
+         any depth at all when the camera is dead in front of him. */
+      this.body.ctl.faceTo = (this.rng() < 0.5 ? -1 : 1) * (0.13 + this.rng() * 0.09);
     } else if (Math.abs(this.body.H - L.fig.H) > 0.5) {
       this.body.H = L.fig.H;
     }
@@ -83,7 +90,10 @@
 
     /* the shaft runs from the work back to a hold near his chest */
     var chest = b.chest || V.v(b.pos.x, R3.P.shoulderY * H, b.pos.z);
-    var anchor = V.v(chest.x + (brushSide ? -0.06 : 0.06) * H, chest.y - 0.17 * H, chest.z + 0.05 * H);
+    /* The hold sits clear of the ribs and off the midline. At 0.05 H forward
+       it was inside the chest, so in three dimensions the forearm vanished
+       into the torso and the pole appeared to grow out of his shirt. */
+    var anchor = V.v(chest.x + (brushSide ? -0.10 : 0.10) * H, chest.y - 0.17 * H, chest.z + 0.12 * H);
     var shaft = V.sub(anchor, tip);
     var sl = V.len(shaft) || 1;
     var poleLen = (brushSide ? POLE_BRUSH : POLE_CLOTH) * L.R;
@@ -104,8 +114,13 @@
     var aheadWrist = V.add(ahead, V.mul(dir, this.grip));
     this.tool = { tip: tip, base: wrist, side: S.active.side, len: this.grip };
 
-    /* nobody swings a long handle one-handed when it matters */
-    var second = effort > 0.66 ? V.add(tip, V.mul(dir, this.grip + 0.20 * L.R)) : null;
+    /* Nobody swings a long handle one-handed when it matters. The second
+       hand takes the shaft between the first and the head — past the first
+       hand there is no shaft left to hold, and putting it there threw the
+       arm out past the panel and across his own face. */
+    var second = effort > 0.66
+      ? V.add(tip, V.mul(dir, Math.max(this.grip * 0.30, this.grip - 0.22 * L.R)))
+      : null;
     b.reach = { side: side, point: wrist, aheadPoint: aheadWrist, tight: tight, effort: effort, second: second };
     b.reach.point = wrist;
 
@@ -120,6 +135,13 @@
     b.step(dt);
     b.reach.point = keep;
     this.dt = dt;
+  };
+
+  /* The world pose, for the 3D renderer. Same solve, no projection. */
+  Figure.prototype.worldPose = function () {
+    var w = this.body.pose();
+    w.toolLeft = this.tool && this.tool.side === 'brush';
+    return w;
   };
 
   Figure.prototype.pose = function (L, t) {
@@ -154,8 +176,14 @@
   };
 
   Figure.prototype.draw = function (far, near, p, L) {
+    var act = C.draw2d.draw(far, near, p, this.palette, {});
+    this.drawTool(near, p, L, act);
+  };
+
+  /* The tool stays flat and sharp whichever way the body is drawn: it is a
+     stick and a brush head, and it has to agree with the paint on the panel. */
+  Figure.prototype.drawTool = function (near, p, L, act) {
     var H = p.H, pal = this.palette;
-    var act = C.draw2d.draw(far, near, p, pal, {});
     if (!p.tool) return;
     var tp = p.tool.tip, bp = p.tool.base;
     var dx = bp.x - tp.x, dy = bp.y - tp.y;
@@ -167,7 +195,7 @@
     near.lineWidth = 0.020 * H;
     near.beginPath();
     near.moveTo(tp.x, tp.y);
-    near.lineTo(bp.x + ux * 0.05 * H, bp.y + uy * 0.05 * H);
+    near.lineTo(bp.x + ux * 0.09 * H, bp.y + uy * 0.09 * H);
     near.stroke();
     if (p.tool.side === 'brush') {
       near.strokeStyle = '#26242a';
@@ -185,13 +213,23 @@
       near.fill();
     }
     near.restore();
-    /* mid re-grip the hand comes off the shaft for a moment */
-    if (act) {
+
+    /* The shaft is drawn over the painter, so without this the hand is behind
+       it and he appears to be standing next to a pole rather than holding one.
+       The flat renderer hands back the hand it drew; the 3D one cannot, so
+       fall back to the projected joint. */
+    var hd = (act && act.hd) || (p.toolLeft ? p.handB : p.handC);
+    if (hd) {
+      var off = p.regrip * 0.022 * H;
+      near.save();
+      near.translate(hd.x - uy * off, hd.y + ux * off);
+      near.rotate(Math.atan2(uy, ux));
       near.fillStyle = pal.skin;
       near.beginPath();
-      near.arc(act.hd.x - uy * p.regrip * 0.022 * H, act.hd.y + ux * p.regrip * 0.022 * H,
-        0.030 * H * (act.hd.k || 1), 0, U.TAU);
+      /* a fist round a shaft is longer along it than across it */
+      near.ellipse(0, 0, 0.038 * H * (hd.k || 1), 0.029 * H * (hd.k || 1), 0, 0, U.TAU);
       near.fill();
+      near.restore();
     }
     void L;
   };
