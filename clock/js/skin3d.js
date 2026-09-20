@@ -30,13 +30,20 @@
    * while the limb reaches its real thickness before it emerges.
    */
   var ARM = [[0, 0.014], [0.09, 0.032], [0.20, 0.030], [0.34, 0.027], [0.50, 0.024], [0.62, 0.027], [0.84, 0.020], [1, 0.016]];
-  var SLEEVE = [[0, 0.022], [0.12, 0.039], [0.50, 0.036], [0.85, 0.033], [1, 0.031]];
+  /* A sleeve has to clear the arm inside it along its whole length. Within a
+     millimetre of the skin the two surfaces fight and the seam reads as a
+     tear, so every ring stands off the arm's profile at the same station. */
+  var SLEEVE = [[0, 0.024], [0.12, 0.041], [0.50, 0.038], [0.85, 0.036], [1, 0.034]];
   var LEG = [[0, 0.018], [0.10, 0.054], [0.24, 0.050], [0.46, 0.040], [0.56, 0.035], [0.68, 0.040], [0.88, 0.026], [1, 0.021]];
   var HIPS = [[0, 0.040], [0.22, 0.086], [0.58, 0.096], [1, 0.088]];
   /* The torso carries the shoulder line: stop it at the chest and the shoulder
      joint, 0.129 H out, floats clear of the ribcage with nothing under the
-     sleeve — which is what puts a man in shoulder pads. */
-  var TORSO = [[0, 0.076], [0.13, 0.081], [0.36, 0.089], [0.58, 0.095], [0.78, 0.100], [0.90, 0.097], [1, 0.070]];
+     sleeve — which is what puts a man in shoulder pads. Above the chest it
+     has to close over, not stop: a ring of any width capped flat leaves a rim
+     round the top of the shirt, and every surface that meets that rim meets it
+     at an edge. The last ring is small enough to disappear inside the neck. */
+  var TORSO = [[0, 0.076], [0.17, 0.083], [0.33, 0.092], [0.50, 0.099],
+    [0.667, 0.101], [0.78, 0.093], [0.88, 0.070], [1, 0.024]];
   var NECK = [[0, 0.046], [0.5, 0.036], [1, 0.033]];
   var FOOT = [[0, 0.022], [0.25, 0.033], [0.72, 0.031], [1, 0.018]];
 
@@ -108,18 +115,24 @@
   }
 
   /* points: 2-4 joint positions. right: the body's right vector. squash: how
-     much flatter the section is front-to-back than side-to-side. */
+     much flatter the section is front-to-back than side-to-side. opts.span
+     stops the loft partway along the spline, which is how a sleeve rides the
+     arm's own curve rather than a straight line drawn near it: approximate the
+     curve and the two surfaces cross wherever the joint bends. The profile is
+     still indexed over the loft's own length, not the spline's. */
   Loft.prototype.set = function (points, tbl, H, right, squash, scale, opts) {
     var rings = this.rings, seg = this.seg, pos = this.pos;
     var sq = squash === undefined ? 0.92 : squash;
     var sc = scale === undefined ? 1 : scale;
     var depthTbl = opts && opts.depth, shiftTbl = opts && opts.shift;
+    var span = (opts && opts.span) || 1;
     var prev = null, k = 0;
     for (var r = 0; r < rings; r++) {
       var t = r / (rings - 1);
-      var c = spline(points, t);
-      var ahead = spline(points, Math.min(1, t + 0.02));
-      var back = spline(points, Math.max(0, t - 0.02));
+      var u = t * span;
+      var c = spline(points, u);
+      var ahead = spline(points, Math.min(span, u + 0.02));
+      var back = spline(points, Math.max(0, u - 0.02));
       var tx = ahead.x - back.x, ty = ahead.y - back.y, tz = ahead.z - back.z;
       var tl = Math.hypot(tx, ty, tz) || 1e-6;
       tx /= tl; ty /= tl; tz /= tl;
@@ -145,7 +158,7 @@
       }
       prev = c;
     }
-    var first = spline(points, 0), lastp = spline(points, 1);
+    var first = spline(points, 0), lastp = spline(points, span);
     pos[k++] = first.x; pos[k++] = first.y; pos[k++] = first.z;
     pos[k++] = lastp.x; pos[k++] = lastp.y; pos[k++] = lastp.z;
     this.geo.attributes.position.needsUpdate = true;
@@ -175,8 +188,8 @@
     loft('torso', 14, 18, this.m.shirt, true, false);
     loft('armL', 10, 12, this.m.skin, true, true);
     loft('armR', 10, 12, this.m.skin, true, true);
-    loft('sleeveL', 6, 12, this.m.shirt, false, true);
-    loft('sleeveR', 6, 12, this.m.shirt, false, true);
+    loft('sleeveL', 7, 14, this.m.shirt, false, true);
+    loft('sleeveR', 7, 14, this.m.shirt, false, true);
     loft('legL', 11, 12, this.m.trouser, true, true);
     loft('legR', 11, 12, this.m.trouser, true, true);
     loft('footL', 5, 10, this.m.shoe, true, true);
@@ -211,8 +224,8 @@
       self.group.add(m);
       self[name] = m;
     };
-    jointBall('deltL', 0.047, this.m.shirt, 1.02, 1.06, 0.92);
-    jointBall('deltR', 0.047, this.m.shirt, 1.02, 1.06, 0.92);
+    jointBall('deltL', 0.038, this.m.shirt, 1.00, 0.96, 0.94);
+    jointBall('deltR', 0.038, this.m.shirt, 1.00, 0.96, 0.94);
     jointBall('hipBL', 0.044, this.m.trouser, 1, 1, 0.9);
     jointBall('hipBR', 0.044, this.m.trouser, 1, 1, 0.9);
 
@@ -255,24 +268,37 @@
     this.hips.set([below, V.lerp(below, p.pelvis, 0.6), p.pelvis, sp[1]], HIPS, H, right, 0.88);
     /* The spine ends at the acromion line, so the trunk must carry a yoke of
        its own above it: stop the loft at the chest and the shoulder joint,
-       0.129 H out, hangs off nothing and the sleeve reads as a pad. */
+       0.129 H out, hangs off nothing and the sleeve reads as a pad. The last
+       two rings are the trapezius, sloping up to the neck. */
     this.torso.set([V.lerp(p.pelvis, sp[1], 0.35), sp[1], sp[2],
       V.lerp(p.pelvis, p.chest, 0.94), p.chest,
-      V.add(p.chest, { x: 0, y: 0.028 * H, z: 0 })], TORSO, H, right, 0.74, 1);
+      V.add(p.chest, { x: 0, y: 0.026 * H, z: 0 }),
+      V.add(p.chest, { x: 0, y: 0.048 * H, z: 0 })], TORSO, H, right, 0.74, 1);
 
     /* The humeral head is medial to the point of the shoulder, so hang the arm
        from inboard of the acromion — otherwise the sleeve and the deltoid stack
-       outside it and he ends up in shoulder pads. */
-    var rootL = V.lerp(p.shL, p.chest, 0.13), rootR = V.lerp(p.shR, p.chest, 0.13);
+       outside it and he ends up in shoulder pads. At 0.13 the root still sat
+       0.112 H out, wider than the ribcage, so the first ring was in open air
+       and the sleeve grazed the trunk instead of entering it: the two surfaces
+       met along a seam that tore as he moved. It has to start inside. */
+    var rootL = V.lerp(p.shL, p.chest, 0.45), rootR = V.lerp(p.shR, p.chest, 0.45);
     this.armL.set([rootL, p.elbL, p.handL], ARM, H, right, 0.94);
     this.armR.set([rootR, p.elbR, p.handR], ARM, H, right, 0.94);
-    /* tucked in and down from the acromion, so the sleeve is what you see */
-    var dl = V.add(V.lerp(p.shL, p.chest, 0.12), { x: 0, y: -0.016 * H, z: 0 });
-    var dr = V.add(V.lerp(p.shR, p.chest, 0.12), { x: 0, y: -0.016 * H, z: 0 });
+    /* Tucked in and down from the acromion, so the sleeve is what you see. It
+       has to reach no further out than the trunk and the sleeve already do: a
+       ball proud of both reads as an epaulette, and leaves a crease where it
+       breaks each surface. */
+    var dl = V.add(V.lerp(p.shL, p.chest, 0.30), { x: 0, y: -0.018 * H, z: 0 });
+    var dr = V.add(V.lerp(p.shR, p.chest, 0.30), { x: 0, y: -0.018 * H, z: 0 });
     this.deltL.position.set(dl.x, dl.y, dl.z);
     this.deltR.position.set(dr.x, dr.y, dr.z);
-    this.sleeveL.set([rootL, V.lerp(p.shL, p.elbL, 0.35), V.lerp(p.shL, p.elbL, 0.70)], SLEEVE, H, right, 0.94);
-    this.sleeveR.set([rootR, V.lerp(p.shR, p.elbR, 0.35), V.lerp(p.shR, p.elbR, 0.70)], SLEEVE, H, right, 0.94);
+    /* The sleeve is the first third of the arm's own spline — the same control
+       points, the same curve. Aimed from the acromion it left the arm's axis
+       at the armpit; drawn on straight segments it crossed the arm at the hem
+       whenever the elbow bent, because the arm's spline bows and a line does
+       not. Sharing the curve there is nothing left to diverge. */
+    this.sleeveL.set([rootL, p.elbL, p.handL], SLEEVE, H, right, 0.94, 1, { span: 0.36 });
+    this.sleeveR.set([rootR, p.elbR, p.handR], SLEEVE, H, right, 0.94, 1, { span: 0.36 });
     /* Limb roots sit *inside* the trunk — up and inboard of the joint — so the
        first ring is swallowed by the pelvis or the ribcage. Rooting a limb on
        the joint itself leaves a visible socket the moment the limb swings. */

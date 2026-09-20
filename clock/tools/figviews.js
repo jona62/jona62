@@ -6,6 +6,8 @@ const path = require('path'); const fs = require('fs');
 const { chromium } = require('playwright');
 const OUT = process.env.OUT || '/tmp/shots';
 const when = process.argv[2] || '10:37:50';
+/* AIM = height to look at, in heights; ZOOM tightens the view on it. */
+const AIM = +(process.env.AIM || 0.58), ZOOM = +(process.env.ZOOM || 1);
 const SETTLE = +(process.env.SETTLE || 3900);
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -22,7 +24,7 @@ const SETTLE = +(process.env.SETTLE || 3900);
   })()`);
   await p.goto('file://' + path.resolve(__dirname, '..', 'index.html'));
   await p.waitForTimeout(SETTLE);
-  const url = await p.evaluate(async () => {
+  const url = await p.evaluate(async ({ AIM, ZOOM }) => {
     const C = window.CLOCK, dev = C.dev, L = dev.layout(), f = dev.figure();
     const w = f.worldPose();
     const rig = new C.Figure3D(window.THREE, f.palette);
@@ -35,8 +37,8 @@ const SETTLE = +(process.env.SETTLE || 3900);
     c.fillStyle = '#eef1f5'; c.fillRect(0, 0, sheet.width, sheet.height);
     /* The renderer's world has the ground at y = 0 and the camera a focal
        length out on +z, so orbit at that same distance about mid-torso. */
-    const cam = rig.camera, d = L.fig.H * 4;
-    const ox = L.fig.baseX - L.cx, oy = L.fig.H * 0.58;
+    const cam = rig.camera, d = L.fig.H * 4 / ZOOM;
+    const ox = L.fig.baseX - L.cx, oy = L.fig.H * AIM;
     for (let i = 0; i < cols; i++) {
       const a = i * Math.PI / 2 + 0.35;
       cam.position.set(ox + Math.sin(a) * d, oy + L.fig.H * 0.06, Math.cos(a) * d);
@@ -46,7 +48,7 @@ const SETTLE = +(process.env.SETTLE || 3900);
       c.fillText(['front-ish', 'left', 'back', 'right'][i], i * tw + 8, 20);
     }
     return sheet.toDataURL('image/png');
-  });
+  }, { AIM, ZOOM });
   const file = path.join(OUT, `figviews-${when.replace(/:/g, '')}.png`);
   fs.writeFileSync(file, Buffer.from(url.split(',')[1], 'base64'));
   console.log(path.basename(file), errs.length ? 'ERRORS ' + errs.join('|') : 'ok');
