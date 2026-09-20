@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<title>Body Lab 3D</title>
+<meta name="description" content="The clock painter's rig in three dimensions: orbit the camera, tap the ground to send him walking, and run, jump, pick up and throw." />
+<meta name="theme-color" content="#e8ecf1" />
+<style>
+  html, body { height: 100%; margin: 0; background: #e8ecf1; color: #1c2029;
+    font: 400 14px/1.4 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    overscroll-behavior: none; -webkit-user-select: none; user-select: none; }
+  body { display: flex; flex-direction: column; }
+  #stage { display: block; flex: 1 1 auto; touch-action: none; }
+  #bar { flex: 0 0 auto; display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    background: #fff; border-top: 1px solid #d9dde4; align-items: center; }
+  button { flex: 1 1 0; min-width: 74px; min-height: 46px; padding: 0 10px; font: 600 13px/1 inherit;
+    letter-spacing: 0.02em; color: #26303f; background: #f2f4f7; border: 1px solid #ccd3dc;
+    border-radius: 9px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  button:active { background: #e3e8ef; transform: translateY(1px); }
+  button.on { background: #2f6df0; border-color: #2559c9; color: #fff; }
+  #hud { flex: 1 0 100%; order: -1; padding: 2px 2px 6px; color: #5a6475;
+    font: 400 11px/1.3 ui-monospace, Menlo, monospace; white-space: pre; overflow-x: auto; }
+  #tip { position: absolute; top: calc(10px + env(safe-area-inset-top, 0px)); left: 0; right: 0;
+    text-align: center; color: #6d7787; font-size: 12px; pointer-events: none; padding: 0 16px; }
+</style>
+</head>
+<body>
+  <canvas id="stage"></canvas>
+  <p id="tip">drag to orbit · tap the ground to send him there · tap the ball to pick it up</p>
+  <div id="bar">
+    <div id="hud">loading…</div>
+    <button id="run" type="button">Run</button>
+    <button id="jump" type="button">Jump</button>
+    <button id="grab" type="button">Pick up</button>
+    <button id="throw" type="button">Throw</button>
+    <button id="slow" type="button">Slow-mo</button>
+    <button id="skel" type="button">Skeleton</button>
+    <button id="reset" type="button">Reset</button>
+  </div>
+  <!-- three.js r160 (UMD). Vendored so the lab runs offline and from file://;
+       newer releases ship ESM only and cannot be loaded this way. -->
+  <script src="vendor/three.min.js"></script>
+  <script src="../js/util.js"></script>
+  <script src="body3d.js"></script>
+  <script src="rig3d.js"></script>
+  <script src="lab3d.js"></script>
+</body>
+</html>

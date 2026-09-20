@@ -192,7 +192,11 @@
   }
 
   function frame(ts) {
-    var dt = Math.min(0.05, (ts - last) / 1000) || 1 / 60;
+    /* rAF's timestamp can predate the performance.now() taken just before the
+       first request, so this delta can arrive negative. A negative dt makes
+       every spring integrate backwards and blow up to NaN on frame one. */
+    var dt = (ts - last) / 1000;
+    if (!(dt > 0) || dt > 0.05) dt = 1 / 60;
     last = ts;
     if (slow) dt *= 0.3;
 
