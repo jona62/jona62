@@ -37,7 +37,7 @@ const labTitle = /<title>([\s\S]*?)<\/title>/.exec(labHtml)[1];
 const labDesc = /<meta name="description" content="([\s\S]*?)"\s*\/?>/.exec(labHtml)[1];
 const labStyle = /<style>([\s\S]*?)<\/style>/.exec(labHtml)[1];
 const labBody = /<body>([\s\S]*?)<\/body>/.exec(labHtml)[1].trim()
-  .replace('../js/util.js', 'js/util.js');
+  .replace(/\.\.\/js\//g, 'js/');
 const labOut = `<title>${labTitle}</title>
 <meta name="description" content="${labDesc}" />
 <style>
@@ -49,8 +49,9 @@ const labDist = path.join(root, 'dist', 'lab');
 fs.mkdirSync(path.join(labDist, 'js'), { recursive: true });
 fs.writeFileSync(path.join(labDist, 'artifact.html'), labOut);
 fs.copyFileSync(path.join(root, 'js', 'util.js'), path.join(labDist, 'js', 'util.js'));
-for (const f of ['body.js', 'render.js', 'lab.js']) {
-  fs.copyFileSync(path.join(labSrc, f), path.join(labDist, f));
+fs.copyFileSync(path.join(labSrc, 'lab.js'), path.join(labDist, 'lab.js'));
+for (const f of ['rig.js', 'draw2d.js', 'figure.js']) {
+  fs.copyFileSync(path.join(root, 'js', f), path.join(labDist, 'js', f));
 }
 console.log('wrote', path.relative(root, path.join(labDist, 'artifact.html')));
 
@@ -60,7 +61,7 @@ const h3 = fs.readFileSync(path.join(l3, 'index.html'), 'utf8');
 const t3 = /<title>([\s\S]*?)<\/title>/.exec(h3)[1];
 const d3 = /<meta name="description" content="([\s\S]*?)"\s*\/?>/.exec(h3)[1];
 const s3 = /<style>([\s\S]*?)<\/style>/.exec(h3)[1];
-const b3 = /<body>([\s\S]*?)<\/body>/.exec(h3)[1].trim().replace('../js/util.js', 'js/util.js');
+const b3 = /<body>([\s\S]*?)<\/body>/.exec(h3)[1].trim().replace(/\.\.\/js\//g, 'js/');
 const dist3 = path.join(root, 'dist', 'lab3d');
 fs.mkdirSync(path.join(dist3, 'js'), { recursive: true });
 fs.mkdirSync(path.join(dist3, 'vendor'), { recursive: true });
@@ -68,7 +69,8 @@ fs.writeFileSync(path.join(dist3, 'artifact.html'),
   `<title>${t3}</title>\n<meta name="description" content="${d3}" />\n<style>\n${s3.trim()}\n</style>\n${b3}\n`);
 fs.copyFileSync(path.join(root, 'js', 'util.js'), path.join(dist3, 'js', 'util.js'));
 fs.copyFileSync(path.join(l3, 'vendor', 'three.min.js'), path.join(dist3, 'vendor', 'three.min.js'));
-for (const f of ['body3d.js', 'rig3d.js', 'lab3d.js']) {
+fs.copyFileSync(path.join(root, 'js', 'rig.js'), path.join(dist3, 'js', 'rig.js'));
+for (const f of ['skin3d.js', 'lab3d.js']) {
   fs.copyFileSync(path.join(l3, f), path.join(dist3, f));
 }
 console.log('wrote', path.relative(root, path.join(dist3, 'artifact.html')));

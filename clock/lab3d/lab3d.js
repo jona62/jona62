@@ -4,11 +4,12 @@
  */
 (function (global) {
   'use strict';
-  var C = global.CLOCK, U = C.util, V = C.v3;
+  var C = global.CLOCK, U = C.util, V = C.rig;
   var THREE = global.THREE;
 
   var H = 1.75;
-  var renderer, scene, camera, rig, body, ball, ballMesh, ground, hud, canvasEl;
+  var renderer, scene, camera, skin, body, ball, ballMesh, ground, hud, canvasEl;
+  var bones, boneGeo, bonePos, comDot, keys = {};
   var cam = { yaw: 0.55, pitch: 0.30, dist: 5.2, tx: 0, ty: 0.9, tz: 0 };
   var slow = false, skel = false, last = 0;
   var drag = { on: false, x: 0, y: 0, moved: 0, t0: 0, pinch: 0 };
@@ -59,13 +60,26 @@
     grid.position.y = 0.002;
     scene.add(grid);
 
-    body = new C.Body3D(H);
+    body = new C.rig.Body(H, 7);
+    body.feet[0].x = -0.065 * H; body.feet[1].x = 0.065 * H;
     global.__body = body;
-    rig = new C.Rig3D(THREE, H, {
-      shirt: '#5f77d4', shirtDark: '#4a60bd', trouser: '#39405e',
-      skin: '#d5a684', cap: '#42539f'
+    skin = new C.Skin3D(THREE, H, {
+      shirt: '#5f77d4', trouser: '#39405e', skin: '#d5a684', cap: '#42539f'
     });
-    scene.add(rig.group);
+    scene.add(skin.group);
+
+    bonePos = new Float32Array(3 * 2 * 16);
+    boneGeo = new THREE.BufferGeometry();
+    boneGeo.setAttribute('position', new THREE.BufferAttribute(bonePos, 3));
+    bones = new THREE.LineSegments(boneGeo,
+      new THREE.LineBasicMaterial({ color: 0x0090ff, depthTest: false }));
+    bones.frustumCulled = false;
+    bones.visible = false;
+    scene.add(bones);
+    comDot = new THREE.Mesh(new THREE.SphereGeometry(0.035, 10, 8),
+      new THREE.MeshBasicMaterial({ color: 0x1ea05a, depthTest: false }));
+    comDot.visible = false;
+    scene.add(comDot);
 
     ball = makeBall();
     ballMesh = new THREE.Mesh(new THREE.SphereGeometry(ball.r, 20, 14),
@@ -155,7 +169,7 @@
 
   function stepBall(dt) {
     if (ball.held) { trailN = 0; trail.geometry.setDrawRange(0, 0); return; }
-    ball.vel.y -= C.BODY3D_CONST.G * H * dt;
+    ball.vel.y -= C.rig.G * H * dt;
     ball.pos = V.add(ball.pos, V.mul(ball.vel, dt));
     if (ball.pos.y < ball.r) {
       ball.pos.y = ball.r;
@@ -187,8 +201,10 @@
 
     body.step(dt);
     stepBall(dt);
+    readKeys();
     var p = body.pose();
-    rig.update(p);
+    skin.update(p);
+    if (bones.visible) updateBones(p);
     ballMesh.position.set(ball.pos.x, ball.pos.y, ball.pos.z);
 
     cam.tx = U.damp(cam.tx, body.pos.x, 3.2, dt);
@@ -212,9 +228,71 @@
     global.requestAnimationFrame(frame);
   }
 
+  var BONE_PAIRS = [['pelvis', 'spine1'], ['spine1', 'spine2'], ['spine2', 'chest'], ['shL', 'shR'],
+    ['hipL', 'hipR'], ['shL', 'elbL'], ['elbL', 'handL'], ['shR', 'elbR'], ['elbR', 'handR'],
+    ['hipL', 'kneeL'], ['kneeL', 'ankL'], ['hipR', 'kneeR'], ['kneeR', 'ankR'], ['chest', 'head']];
+
+  function updateBones(p) {
+    var get = function (k) {
+      if (k === 'spine1') return p.spine[1];
+      if (k === 'spine2') return p.spine[2];
+      return p[k];
+    };
+    var n = 0;
+    for (var i = 0; i < BONE_PAIRS.length; i++) {
+      var a = get(BONE_PAIRS[i][0]), b = get(BONE_PAIRS[i][1]);
+      bonePos[n++] = a.x; bonePos[n++] = a.y; bonePos[n++] = a.z;
+      bonePos[n++] = b.x; bonePos[n++] = b.y; bonePos[n++] = b.z;
+    }
+    boneGeo.attributes.position.needsUpdate = true;
+    boneGeo.setDrawRange(0, BONE_PAIRS.length * 2);
+    comDot.position.set(p.com.x, p.com.y, p.com.z);
+    var lo = Math.min(p.support[0].x, p.support[1].x) - 0.12;
+    var hi = Math.max(p.support[0].x, p.support[1].x) + 0.12;
+    comDot.material.color.setHex(p.com.x > lo && p.com.x < hi ? 0x1ea05a : 0xdc3c32);
+  }
+
+  /* Keyboard: movement is relative to the camera, so forward is always away
+     from you however far you have orbited round. */
+  function readKeys() {
+    if (!body) return;
+    var f = (keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0);
+    var r = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
+    if (!f && !r) { body.ctl.moveDir = null; return; }
+    var cf = { x: -Math.sin(cam.yaw), z: -Math.cos(cam.yaw) };
+    var cr = { x: Math.cos(cam.yaw), z: -Math.sin(cam.yaw) };
+    body.ctl.moveDir = { x: cf.x * f + cr.x * r, z: cf.z * f + cr.z * r };
+    body.ctl.moveTo = null;
+  }
+
+  var MOVE_KEYS = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' '];
+  function bindKeys() {
+    var press = function (e, down) {
+      var k = (e.key || '').toLowerCase();
+      if (MOVE_KEYS.indexOf(k) >= 0) e.preventDefault();
+      if (k === 'shift') {
+        body.ctl.run = down;
+        document.getElementById('run').classList.toggle('on', down);
+        return;
+      }
+      keys[k] = down;
+      if (!down) return;
+      if (k === ' ') body.jump();
+      else if (k === 'e') document.getElementById('grab').click();
+      else if (k === 'f') body.startThrow();
+      else if (k === 'x') document.getElementById('skel').click();
+      else if (k === 'z') document.getElementById('slow').click();
+      else if (k === 'r') document.getElementById('reset').click();
+      else if (k === 'q') cam.yaw -= 0.3;
+      else if (k === 'c') cam.yaw += 0.3;
+    };
+    global.addEventListener('keydown', function (e) { press(e, true); });
+    global.addEventListener('keyup', function (e) { press(e, false); });
+  }
+
   function button(id, fn) {
     var el = document.getElementById(id);
-    el.addEventListener('click', function (e) { e.preventDefault(); fn(el); });
+    el.addEventListener('click', function (e) { e.preventDefault(); el.blur(); fn(el); });
     return el;
   }
 
@@ -226,6 +304,7 @@
     }
     THREE = global.THREE;
     init();
+    bindKeys();
     button('run', function (el) { body.ctl.run = !body.ctl.run; el.classList.toggle('on', body.ctl.run); });
     button('jump', function () { body.jump(); });
     button('grab', function () {
@@ -234,14 +313,19 @@
     });
     button('throw', function () { body.startThrow(); });
     button('slow', function (el) { slow = !slow; el.classList.toggle('on', slow); });
-    button('skel', function (el) { skel = !skel; rig.setSkeleton(skel); el.classList.toggle('on', skel); });
+    button('skel', function (el) {
+      skel = !skel;
+      skin.setSkeleton(skel);
+      bones.visible = skel; comDot.visible = skel;
+      el.classList.toggle('on', skel);
+    });
     button('reset', function () {
       ball = makeBall(); body.held = null; trailN = 0;
       trail.geometry.setDrawRange(0, 0);
-      body.pos = V.v(0, 0, 0); body.vel = V.v(0, 0, 0);
+      body.pos = V.v(0, 0, 0); body.vel = V.v(0, 0, 0); body.want = V.v(0, 0, 0);
       body.yOff = 0; body.vy = 0; body.state = 'ground'; body.yaw = 0;
-      body.feet[0].x = -0.07 * H; body.feet[0].z = 0;
-      body.feet[1].x = 0.07 * H; body.feet[1].z = 0;
+      body.feet[0].x = -0.065 * H; body.feet[0].z = 0;
+      body.feet[1].x = 0.065 * H; body.feet[1].z = 0;
     });
   }
 

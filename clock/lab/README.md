@@ -4,6 +4,9 @@ A sandbox for the clock painter's rig, away from the clock. The figure here is
 drawn sharp and life-size on a metre grid, because nothing about body structure
 can be judged through the diffusion of the clock panel.
 
+The body itself is `../js/rig.js`, shared with the clock and the 3D lab; this
+page is only a controller and a stage.
+
 Open `lab/index.html`. Drag anywhere — he reaches for your finger, and walks to
 it if it is out of reach.
 
@@ -39,7 +42,8 @@ travel.
 
 ## Structure
 
-`render.js` is where the figure stopped being a stick man. Limbs are filled
+`../js/draw2d.js` (shared with the clock) is where the figure stopped being a
+stick man. Limbs are filled
 outlines with a width profile down their length rather than round-capped
 strokes of one thickness — thigh thick at the hip and narrow at the knee, calf
 bellied in the upper third, forearm tapering hard into the wrist — and the
@@ -51,12 +55,8 @@ grow square epaulettes.
 
 ## Known gaps
 
-- The run is a fast walk with a flight phase, not a sprint: no heel-strike
-  detail, no trunk counter-rotation to speak of.
-- Objects are a single ball with a bounce; there is no contact model for
-  anything else, and nothing can push him over.
-- `body.js` duplicates the skeleton maths in `../js/figure.js`. They should be
-  one module when this goes back into the clock.
+- The run is a fast walk with a flight phase, not a sprint.
+- Objects are a single ball with a bounce; nothing can push him over.
 
 ## Development
 

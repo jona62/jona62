@@ -228,12 +228,20 @@ computed from each mark's age, not painted into a texture.
 
 | file | what's in it |
 | --- | --- |
-| `js/util.js` | maths, seeded RNG, value noise, two-bone IK |
+| `js/util.js` | maths, seeded RNG, value noise |
+| `js/rig.js` | **the body** — proportions, IK, balance, locomotion, pose. One copy, shared with both sandboxes |
+| `js/draw2d.js` | the 2D renderer, and the world-to-screen projection it takes |
 | `js/schedule.js` | the choreography clock — phases, hand geometry, where the working hand is |
 | `js/paint.js` | brush strokes, ghosts, cloth smears, the dial |
-| `js/figure.js` | the skeleton, the reach solver, the drawing of the person |
+| `js/figure.js` | the painter as a *controller*: what he is trying to do with his hands, and the tool |
 | `js/glass.js` | wall, brass housing, lit panel, diffusion, grain, cover glass |
 | `js/app.js` | layout, layer baking, the frame loop |
+
+The body used to be duplicated three ways — here, in `lab/` and in `lab3d/` —
+which is exactly how three subtly different bodies come about. It is now one
+module. `figure.js` decides where the head of the tool must be and how tightly
+he is held to it; everything below that (balance, stepping, the spine, the IK)
+belongs to the rig, and the drawing belongs to `draw2d.js`.
 
 Plain scripts, no build step, no dependencies, no network calls. It runs from
 `file://`, from any static host, and inside a `<iframe>`.

@@ -1,4 +1,8 @@
-/* Drawing a body rather than a diagram.
+/* Drawing a body rather than a diagram, in two dimensions.
+ *
+ * Shared by the clock and the 2D sandbox. `project` turns the rig's world pose
+ * (y-up, metres-ish) into the screen pose this renderer consumes; everything
+ * below then works in pixels.
  *
  * The old figure was round-capped strokes and ellipses: a stick man with thick
  * lines. Limbs there had one width from end to end and met at a bulge, which is
@@ -292,17 +296,17 @@ var hemL = { x: U.lerp(p.hipL.x, waist.x, 0.10) - 0.020 * H, y: U.lerp(waist.y, 
     ctx.ellipse(-Math.sign(yaw || 1) * h.rx * 0.92, h.ry * 0.06, h.rx * 0.16, h.ry * 0.22, 0, 0, TAU);
     ctx.fill();
     /* cap */
-    ctx.fillStyle = pal.cap;
+    ctx.fillStyle = pal.cap;          /* sits on the crown, not over the face */
     ctx.beginPath();
-    ctx.ellipse(yaw * h.rx * 0.14, -h.ry * 0.46, h.rx * 1.08, h.ry * 0.60, 0, 0, TAU);
+    ctx.ellipse(yaw * h.rx * 0.14, -h.ry * 0.60, h.rx * 1.04, h.ry * 0.50, 0, 0, TAU);
     ctx.fill();
     ctx.beginPath();
-    ctx.ellipse(yaw * h.rx * 1.00, -h.ry * 0.30, h.rx * 0.68, h.ry * 0.20, yaw * 0.22, 0, TAU);
+    ctx.ellipse(yaw * h.rx * 1.00, -h.ry * 0.48, h.rx * 0.66, h.ry * 0.17, yaw * 0.22, 0, TAU);
     ctx.fill();
-    ctx.globalAlpha = 0.25;
+    ctx.globalAlpha = 0.22;
     ctx.fillStyle = 'rgba(10,12,18,1)';
     ctx.beginPath();
-    ctx.ellipse(yaw * h.rx * 0.14, -h.ry * 0.22, h.rx * 1.02, h.ry * 0.12, 0, 0, TAU);
+    ctx.ellipse(yaw * h.rx * 0.14, -h.ry * 0.36, h.rx * 0.98, h.ry * 0.10, 0, 0, TAU);
     ctx.fill();
     ctx.restore();
   }
@@ -355,5 +359,50 @@ var hemL = { x: U.lerp(p.hipL.x, waist.x, 0.10) - 0.020 * H, y: U.lerp(waist.y, 
     return act;
   }
 
-  C.bodyRender = { draw: draw, drawArm: drawArm, drawLeg: drawLeg, drawHead: drawHead, drawHand: drawHand };
+  /* World pose -> screen pose. `view` gives the screen point the world origin
+     sits at, the ground line, the principal point for the weak perspective,
+     and the camera distance. Cloth lag is kept per-renderer, since it is a
+     drawing effect rather than anything the body knows about. */
+  function project(w, view, lagStore, dt) {
+    var f = view.f || (w.H * 4);
+    var px = view.px, py = view.py;
+    function pj(p) {
+      var ux = view.cx + (p.x - (view.ox || 0));
+      var uy = view.groundY - p.y;
+      var k = f / (f - p.z);
+      return { x: px + (ux - px) * k, y: py + (uy - py) * k, k: k };
+    }
+    var head = pj(w.head);
+    var up = pj({ x: w.head.x + w.headUp.x, y: w.head.y + w.headUp.y, z: w.head.z + w.headUp.z });
+    var out = {
+      H: w.H, feetY: view.groundY,
+      pelvis: pj(w.pelvis), spine: w.spine.map(pj), chest: pj(w.chest),
+      shL: pj(w.shL), shR: pj(w.shR), hipL: pj(w.hipL), hipR: pj(w.hipR),
+      kneeL: pj(w.kneeL), kneeR: pj(w.kneeR), ankL: pj(w.ankL), ankR: pj(w.ankR),
+      elbL: pj(w.elbL), elbR: pj(w.elbR), handB: pj(w.handL), handC: pj(w.handR),
+      neck: pj(w.neck),
+      head: { p: head, ang: Math.atan2(head.x - up.x, up.y - head.y),
+        yaw: w.headYawN || 0, rx: C.rig.P.headRx * w.H, ry: C.rig.P.headRy * w.H, k: head.k },
+      toolLeft: !!w.toolLeft, rollL: w.rollL, rollR: w.rollR,
+      state: w.state, crouch: w.crouch, regrip: w.regrip || 0
+    };
+    if (lagStore) {
+      if (!lagStore.kL) {
+        lagStore.kL = { x: out.kneeL.x, y: out.kneeL.y }; lagStore.kR = { x: out.kneeR.x, y: out.kneeR.y };
+        lagStore.eL = { x: out.elbL.x, y: out.elbL.y }; lagStore.eR = { x: out.elbR.x, y: out.elbR.y };
+      }
+      [['kL', 'kneeL'], ['kR', 'kneeR'], ['eL', 'elbL'], ['eR', 'elbR']].forEach(function (pr) {
+        var lg = lagStore[pr[0]], c2 = out[pr[1]];
+        lg.x = U.damp(lg.x, c2.x, 22, dt || 1 / 60);
+        lg.y = U.damp(lg.y, c2.y, 22, dt || 1 / 60);
+      });
+      out.drag = lagStore;
+    } else {
+      out.drag = { kL: out.kneeL, kR: out.kneeR, eL: out.elbL, eR: out.elbR };
+    }
+    return out;
+  }
+
+  C.draw2d = { draw: draw, project: project, drawArm: drawArm, drawLeg: drawLeg, drawHead: drawHead, drawHand: drawHand };
+  C.bodyRender = C.draw2d;
 })(typeof window !== 'undefined' ? window : globalThis);

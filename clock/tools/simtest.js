@@ -4,7 +4,7 @@
  */
 const path = require('path');
 global.window = { CLOCK: {} };
-['util','schedule','figure'].forEach(f => require(path.resolve(__dirname,'..','js',f+'.js')));
+['util','rig','draw2d','schedule','figure'].forEach(f => require(path.resolve(__dirname,'..','js',f+'.js')));
 const C = global.window.CLOCK, U = C.util;
 const w=1440,h=900, R=Math.min(w*0.345,h*0.325), H=R*1.25, cy=h*0.5;
 const L={w,h,dpr:1,cx:w/2,cy,R,fig:{H,feetY:cy+R*0.78,baseX:w/2+R*0.10},panel:{}};
@@ -22,7 +22,7 @@ for (let i=0;i<60*120;i++){          // 120 s at 60fps
   for (const key of ['pelvis','shL','handB','kneeL','ankR']) {
     if (!isFinite(p[key].x)||!isFinite(p[key].y)) nan++;
   }
-  const f=fig.feet;
+  const f=fig.body.feet;
   for (let k=0;k<2;k++){
     const moving = f[k].state !== 'plant';
     if (moving && !lastSwing[k]) {
@@ -34,7 +34,7 @@ for (let i=0;i<60*120;i++){          // 120 s at 60fps
     lastSwing[k]=moving;
   }
   const span=[Math.min(f[0].x,f[1].x),Math.max(f[0].x,f[1].x)];
-  const com = U.lerp(fig.s.hipX, p.shL.x, 0.2);
+  const com = U.lerp(fig.body.pos.x, 0, 0.2);
   if (com < span[0]-0.02*H || com > span[1]+0.02*H) comOut++;
   maxHip=Math.max(maxHip,p.pelvis.y); minHip=Math.min(minHip,p.pelvis.y);
   // both feet swinging at once would be a fall
@@ -45,4 +45,4 @@ console.log('steps in 120s:',steps, ' (=',(steps/2).toFixed(1),'per minute per f
 console.log('direction reversals between consecutive steps of same foot:',flips);
 console.log('hip height range px:',(maxHip-minHip).toFixed(1),'=',((maxHip-minHip)/H*100).toFixed(1),'% of H');
 console.log('frames with COM outside support:',comOut, (100*comOut/frames).toFixed(1)+'%');
-console.log('final stance width:',Math.abs(fig.feet[0].x-fig.feet[1].x).toFixed(1),'px =',(Math.abs(fig.feet[0].x-fig.feet[1].x)/H).toFixed(3),'H');
+console.log('final stance width:',Math.abs(fig.body.feet[0].x-fig.body.feet[1].x).toFixed(1),'px =',(Math.abs(fig.body.feet[0].x-fig.body.feet[1].x)/H).toFixed(3),'H');
