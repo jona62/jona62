@@ -17,13 +17,39 @@
   'use strict';
   var C = global.CLOCK, U = C.util;
 
-  /* radius profiles: [t along the limb, half-width in H] */
-  var ARM = [[0, 0.055], [0.12, 0.049], [0.34, 0.040], [0.50, 0.036], [0.62, 0.039], [0.84, 0.030], [1, 0.024]];
-  var LEG = [[0, 0.060], [0.16, 0.066], [0.42, 0.052], [0.52, 0.047], [0.66, 0.055], [0.88, 0.034], [1, 0.028]];
-  var HIPS = [[0, 0.055], [0.20, 0.096], [0.55, 0.103], [1, 0.094]];
-  var SLEEVE = [[0, 0.060], [0.45, 0.053], [0.85, 0.048], [1, 0.044]];
-  var TORSO = [[0, 0.082], [0.16, 0.086], [0.42, 0.098], [0.70, 0.112], [0.88, 0.113], [1, 0.094]];
-  var FOOT = [[0, 0.030], [0.25, 0.042], [0.72, 0.040], [1, 0.024]];
+  /* Radius profiles: [t along the limb, half-width as a fraction of stature].
+   *
+   * These are radii, not widths, and they come from girths rather than being
+   * eyeballed: an upper arm is about a 32 cm circumference, so a 10 cm
+   * diameter, so 0.029 H of radius. Guessing these produces a body that is
+   * roughly 1.7x too thick everywhere, which reads as inflated no matter how
+   * good the proportions between the joints are.
+   *
+   * Every limb starts at a pinhole and opens to full width a tenth of the way
+   * along, so the root ring is a disc small enough to vanish inside the trunk
+   * while the limb reaches its real thickness before it emerges.
+   */
+  var ARM = [[0, 0.014], [0.09, 0.032], [0.20, 0.030], [0.34, 0.027], [0.50, 0.024], [0.62, 0.027], [0.84, 0.020], [1, 0.016]];
+  var SLEEVE = [[0, 0.022], [0.12, 0.039], [0.50, 0.036], [0.85, 0.033], [1, 0.031]];
+  var LEG = [[0, 0.018], [0.10, 0.054], [0.24, 0.050], [0.46, 0.040], [0.56, 0.035], [0.68, 0.040], [0.88, 0.026], [1, 0.021]];
+  var HIPS = [[0, 0.040], [0.22, 0.086], [0.58, 0.096], [1, 0.088]];
+  /* The torso carries the shoulder line: stop it at the chest and the shoulder
+     joint, 0.129 H out, floats clear of the ribcage with nothing under the
+     sleeve — which is what puts a man in shoulder pads. */
+  var TORSO = [[0, 0.076], [0.13, 0.081], [0.36, 0.089], [0.58, 0.095], [0.74, 0.099], [0.86, 0.090], [0.94, 0.072], [1, 0.050]];
+  var NECK = [[0, 0.046], [0.5, 0.036], [1, 0.033]];
+  var FOOT = [[0, 0.022], [0.25, 0.033], [0.72, 0.031], [1, 0.018]];
+
+  /* A head is not a sphere: the jaw is narrow, the cheekbones are the widest
+     point, the cranium is deeper than it is wide, and the cross-section sits
+     forward of the axis at the chin and behind it at the crown. Width and
+     depth need separate profiles, and the rings need an offset. */
+  var HEAD_W = [[0, 0.030], [0.16, 0.046], [0.38, 0.059], [0.60, 0.064], [0.82, 0.056], [1, 0.026]];
+  var HEAD_D = [[0, 0.030], [0.16, 0.044], [0.38, 0.055], [0.60, 0.060], [0.82, 0.052], [1, 0.024]];
+  var HEAD_S = [[0, 0.013], [0.30, 0.006], [0.60, -0.002], [1, -0.008]];
+  /* a hand is a flattened paddle: thin across the palm, broad through it */
+  var HAND_W = [[0, 0.011], [0.30, 0.015], [0.70, 0.014], [1, 0.009]];
+  var HAND_D = [[0, 0.022], [0.35, 0.031], [0.75, 0.029], [1, 0.018]];
 
   function profile(tbl, t) {
     for (var i = 1; i < tbl.length; i++) {
@@ -83,10 +109,11 @@
 
   /* points: 2-4 joint positions. right: the body's right vector. squash: how
      much flatter the section is front-to-back than side-to-side. */
-  Loft.prototype.set = function (points, tbl, H, right, squash, scale) {
+  Loft.prototype.set = function (points, tbl, H, right, squash, scale, opts) {
     var rings = this.rings, seg = this.seg, pos = this.pos;
     var sq = squash === undefined ? 0.92 : squash;
     var sc = scale === undefined ? 1 : scale;
+    var depthTbl = opts && opts.depth, shiftTbl = opts && opts.shift;
     var prev = null, k = 0;
     for (var r = 0; r < rings; r++) {
       var t = r / (rings - 1);
@@ -104,9 +131,14 @@
       rx /= rl; ry /= rl; rz /= rl;
       var fx = ry * tz - rz * ty, fy = rz * tx - rx * tz, fz = rx * ty - ry * tx;
       var rad = profile(tbl, t) * H * sc;
+      var dep = depthTbl ? profile(depthTbl, t) * H * sc : rad * sq;
+      if (shiftTbl) {
+        var sh = profile(shiftTbl, t) * H * sc;
+        c = { x: c.x + fx * sh, y: c.y + fy * sh, z: c.z + fz * sh };
+      }
       for (var s = 0; s < seg; s++) {
         var a = s / seg * Math.PI * 2;
-        var ca = Math.cos(a) * rad, sa = Math.sin(a) * rad * sq;
+        var ca = Math.cos(a) * rad, sa = Math.sin(a) * dep;
         pos[k++] = c.x + rx * ca + fx * sa;
         pos[k++] = c.y + ry * ca + fy * sa;
         pos[k++] = c.z + rz * ca + fz * sa;
@@ -140,7 +172,7 @@
       return l;
     }
     loft('hips', 5, 14, this.m.trouser, false, true);
-    loft('torso', 8, 16, this.m.shirt, true, false);
+    loft('torso', 14, 18, this.m.shirt, true, false);
     loft('armL', 10, 12, this.m.skin, true, true);
     loft('armR', 10, 12, this.m.skin, true, true);
     loft('sleeveL', 6, 12, this.m.shirt, false, true);
@@ -151,47 +183,44 @@
     loft('footR', 5, 10, this.m.shoe, true, true);
     loft('neck', 4, 10, this.m.skin, false, false);
 
-    /* the head is built once and carried about */
-    var head = new THREE.SphereGeometry(P().headRy * H, 22, 16);
-    var a = head.attributes.position;
-    for (var i = 0; i < a.count; i++) {
-      var x = a.getX(i), y = a.getY(i), z = a.getZ(i);
-      var t = U.clamp((y / (P().headRy * H) + 1) * 0.5, 0, 1);
-      /* narrow the jaw, deepen the cranium, flatten the face plane slightly */
-      var w = U.lerp(0.80, 1.02, U.smoothstep(0, 0.65, t));
-      var dpt = U.lerp(0.94, 1.12, U.smoothstep(0.1, 0.9, t));
-      a.setX(i, x * w * 0.96);
-      a.setZ(i, z * dpt * (z > 0 ? 0.94 : 1.06));
-      a.setY(i, y * 1.06 - (1 - t) * 0.012 * H);
-    }
-    head.computeVertexNormals();
-    this.head = new THREE.Mesh(head, this.m.skin);
-    this.head.castShadow = true;
-    this.group.add(this.head);
+    loft('headL', 12, 18, this.m.skin, true, true);
+    loft('handLL', 6, 12, this.m.skin, true, true);
+    loft('handRL', 6, 12, this.m.skin, true, true);
 
-    var capG = new THREE.SphereGeometry(P().headRy * H * 1.04, 20, 10, 0, Math.PI * 2, 0, Math.PI * 0.55);
+    var capG = new THREE.SphereGeometry(0.079 * H, 22, 12, 0, Math.PI * 2, 0, Math.PI * 0.60);
     this.cap = new THREE.Mesh(capG, this.m.cap);
     this.cap.castShadow = true;
-    this.cap.scale.set(1.04, 0.92, 1.08);
+    this.cap.scale.set(1.0, 0.92, 1.05);
     this.group.add(this.cap);
-    var peakG = new THREE.CylinderGeometry(P().headRy * H * 0.98, P().headRy * H * 0.98, 0.012 * H, 18, 1, false, -0.9, 1.8);
+    var peakG = new THREE.CylinderGeometry(0.068 * H, 0.068 * H, 0.010 * H, 20, 1, false, -0.85, 1.7);
     this.peak = new THREE.Mesh(peakG, this.m.cap);
-    this.peak.scale.set(1, 1, 1.5);
+    this.peak.scale.set(1, 1, 1.02);
     this.peak.castShadow = true;
     this.group.add(this.peak);
 
-    var earG = new THREE.SphereGeometry(0.016 * H, 8, 6);
+    /* Joint masses at the shoulder and hip. A limb rooted at a fixed point
+       inside the trunk tears away from it the moment the limb swings up,
+       because the root stops being inside. These sit on the joint itself, in
+       the colour of whatever covers it, and are swallowed by the torso and the
+       limb from either side — a deltoid and a hip, doing the job an actual
+       deltoid and hip do. */
+    var jointBall = function (name, r, material, sx, sy, sz) {
+      var m = new THREE.Mesh(new THREE.SphereGeometry(r * H, 14, 10), material);
+      m.castShadow = true;
+      m.scale.set(sx, sy, sz);
+      self.group.add(m);
+      self[name] = m;
+    };
+    jointBall('deltL', 0.042, this.m.shirt, 1.04, 1.0, 0.92);
+    jointBall('deltR', 0.042, this.m.shirt, 1.04, 1.0, 0.92);
+    jointBall('hipBL', 0.044, this.m.trouser, 1, 1, 0.9);
+    jointBall('hipBR', 0.044, this.m.trouser, 1, 1, 0.9);
+
+    var earG = new THREE.SphereGeometry(0.014 * H, 8, 6);
     this.earL = new THREE.Mesh(earG, this.m.skin);
     this.earR = new THREE.Mesh(earG, this.m.skin);
     this.earL.scale.set(0.5, 1.2, 0.9); this.earR.scale.set(0.5, 1.2, 0.9);
     this.group.add(this.earL); this.group.add(this.earR);
-
-    var handG = new THREE.SphereGeometry(0.030 * H, 10, 8);
-    this.handL = new THREE.Mesh(handG, this.m.skin);
-    this.handR = new THREE.Mesh(handG, this.m.skin);
-    this.handL.scale.set(1, 0.78, 0.62); this.handR.scale.set(1, 0.78, 0.62);
-    this.handL.castShadow = this.handR.castShadow = true;
-    this.group.add(this.handL); this.group.add(this.handR);
 
     this._q = new THREE.Quaternion();
     this._m = new THREE.Matrix4();
@@ -222,20 +251,33 @@
 
     /* hips taper into the crotch rather than ending in a flat skirt, and the
        shirt tucks inside them */
-    var below = V.add(p.pelvis, { x: 0, y: -0.10 * H, z: 0 });
+    var below = V.add(p.pelvis, { x: 0, y: -0.072 * H, z: 0 });
     this.hips.set([below, V.lerp(below, p.pelvis, 0.6), p.pelvis, sp[1]], HIPS, H, right, 0.88);
-    this.torso.set([V.lerp(p.pelvis, sp[1], 0.35), sp[1], sp[2], p.chest], TORSO, H, right, 0.74, 1);
+    this.torso.set([V.lerp(p.pelvis, sp[1], 0.35), sp[1], sp[2], p.chest,
+      V.lerp(p.chest, p.neck, 0.75)], TORSO, H, right, 0.74, 1);
 
-    this.armL.set([V.lerp(p.shL, p.chest, 0.22), p.elbL, p.handL], ARM, H, right, 0.94);
-    this.armR.set([V.lerp(p.shR, p.chest, 0.22), p.elbR, p.handR], ARM, H, right, 0.94);
-    this.sleeveL.set([V.lerp(p.shL, p.chest, 0.18), V.lerp(p.shL, p.elbL, 0.35),
-      V.lerp(p.shL, p.elbL, 0.66)], SLEEVE, H, right, 0.94);
-    this.sleeveR.set([V.lerp(p.shR, p.chest, 0.18), V.lerp(p.shR, p.elbR, 0.35),
-      V.lerp(p.shR, p.elbR, 0.66)], SLEEVE, H, right, 0.94);
-    /* start each leg above its own hip joint, so the top ring is inside the
-       pelvis rather than poking out of the front of it */
-    this.legL.set([V.add(p.hipL, { x: 0, y: 0.045 * H, z: 0 }), p.kneeL, p.ankL], LEG, H, right, 0.96);
-    this.legR.set([V.add(p.hipR, { x: 0, y: 0.045 * H, z: 0 }), p.kneeR, p.ankR], LEG, H, right, 0.96);
+    /* The humeral head is medial to the point of the shoulder, so hang the arm
+       from inboard of the acromion — otherwise the sleeve and the deltoid stack
+       outside it and he ends up in shoulder pads. */
+    var rootL = V.lerp(p.shL, p.chest, 0.13), rootR = V.lerp(p.shR, p.chest, 0.13);
+    this.armL.set([rootL, p.elbL, p.handL], ARM, H, right, 0.94);
+    this.armR.set([rootR, p.elbR, p.handR], ARM, H, right, 0.94);
+    /* tucked in and down from the acromion, so the sleeve is what you see */
+    var dl = V.add(V.lerp(p.shL, p.chest, 0.20), { x: 0, y: -0.006 * H, z: 0 });
+    var dr = V.add(V.lerp(p.shR, p.chest, 0.20), { x: 0, y: -0.006 * H, z: 0 });
+    this.deltL.position.set(dl.x, dl.y, dl.z);
+    this.deltR.position.set(dr.x, dr.y, dr.z);
+    this.sleeveL.set([rootL, V.lerp(p.shL, p.elbL, 0.35), V.lerp(p.shL, p.elbL, 0.70)], SLEEVE, H, right, 0.94);
+    this.sleeveR.set([rootR, V.lerp(p.shR, p.elbR, 0.35), V.lerp(p.shR, p.elbR, 0.70)], SLEEVE, H, right, 0.94);
+    /* Limb roots sit *inside* the trunk — up and inboard of the joint — so the
+       first ring is swallowed by the pelvis or the ribcage. Rooting a limb on
+       the joint itself leaves a visible socket the moment the limb swings. */
+    this.legL.set([V.add(p.hipL, { x: 0, y: 0.022 * H, z: 0 }), p.kneeL, p.ankL], LEG, H, right, 0.96);
+    this.legR.set([V.add(p.hipR, { x: 0, y: 0.022 * H, z: 0 }), p.kneeR, p.ankR], LEG, H, right, 0.96);
+    var hl = V.add(p.hipL, { x: 0, y: 0.014 * H, z: 0 });
+    var hr = V.add(p.hipR, { x: 0, y: 0.014 * H, z: 0 });
+    this.hipBL.position.set(hl.x, hl.y, hl.z);
+    this.hipBR.position.set(hr.x, hr.y, hr.z);
 
     var self = this;
     var foot = function (l, ank, yawF, roll) {
@@ -249,35 +291,47 @@
     foot(this.footL, p.ankL, p.footYawL, p.rollL);
     foot(this.footR, p.ankR, p.footYawR, p.rollR);
 
-    var headBase = V.add(p.head, V.mul(p.headUp, -0.058 * H));
-    this.neck.set([V.add(p.chest, { x: 0, y: -0.01 * H, z: 0 }), p.neck, headBase], [[0, 0.050], [0.5, 0.040], [1, 0.037]], H, right, 0.92);
+    var headBase = V.add(p.head, V.mul(p.headUp, -0.070 * H));
+    this.neck.set([V.add(p.chest, { x: 0, y: -0.01 * H, z: 0 }), p.neck, headBase],
+      NECK, H, right, 0.92);
 
+    /* the head is a loft too, so it grows out of the neck rather than being a
+       ball balanced on it, and turns with its own yaw */
+    var hRight = { x: Math.cos(p.yaw), y: 0, z: -Math.sin(p.yaw) };
     var hq = { x: Math.sin(p.yaw), y: 0, z: Math.cos(p.yaw) };
-    this.orient(this.head, p.headUp, { x: Math.cos(p.yaw), y: 0, z: -Math.sin(p.yaw) }, p.head);
-    this.orient(this.cap, p.headUp, { x: Math.cos(p.yaw), y: 0, z: -Math.sin(p.yaw) },
-      V.add(p.head, V.mul(p.headUp, 0.004 * H)));
-    this.orient(this.peak, p.headUp, { x: Math.cos(p.yaw), y: 0, z: -Math.sin(p.yaw) },
-      V.add(V.add(p.head, V.mul(p.headUp, 0.030 * H)), V.mul(hq, 0.040 * H)));
-    var ear = { x: Math.cos(p.yaw), y: 0, z: -Math.sin(p.yaw) };
-    this.earL.position.set(p.head.x - ear.x * 0.062 * H, p.head.y - 0.004 * H, p.head.z - ear.z * 0.062 * H);
-    this.earR.position.set(p.head.x + ear.x * 0.062 * H, p.head.y - 0.004 * H, p.head.z + ear.z * 0.062 * H);
+    var chin = V.add(p.head, V.mul(p.headUp, -0.064 * H));
+    var crown = V.add(p.head, V.mul(p.headUp, 0.072 * H));
+    this.headL.set([chin, V.lerp(chin, crown, 0.5), crown], HEAD_W, H, hRight, 1,
+      1, { depth: HEAD_D, shift: HEAD_S });
 
-    var handOrient = function (mesh, wrist, elbow) {
-      var up = V.norm(V.sub(wrist, elbow));
-      self.orient(mesh, up, right, V.add(wrist, V.mul(up, 0.016 * H)));
+    this.orient(this.cap, p.headUp, hRight, V.add(p.head, V.mul(p.headUp, 0.024 * H)));
+    this.orient(this.peak, p.headUp, hRight,
+      V.add(V.add(p.head, V.mul(p.headUp, 0.038 * H)), V.mul(hq, 0.048 * H)));
+    this.earL.position.set(p.head.x - hRight.x * 0.060 * H, p.head.y + 0.002 * H, p.head.z - hRight.z * 0.060 * H);
+    this.earR.position.set(p.head.x + hRight.x * 0.060 * H, p.head.y + 0.002 * H, p.head.z + hRight.z * 0.060 * H);
+
+    /* hands: flattened paddles along the forearm, tucked back into the wrist */
+    var hand = function (l, wristP, elbowP) {
+      var d = V.norm(V.sub(wristP, elbowP));
+      var back = V.add(wristP, V.mul(d, -0.018 * H));
+      var tip = V.add(wristP, V.mul(d, 0.082 * H));
+      l.set([back, V.lerp(back, tip, 0.5), tip], HAND_W, H, right, 1, 1, { depth: HAND_D });
+      void self;
     };
-    handOrient(this.handL, p.handL, p.elbL);
-    handOrient(this.handR, p.handR, p.elbR);
+    hand(this.handLL, p.handL, p.elbL);
+    hand(this.handRL, p.handR, p.elbR);
     void fwd;
   };
 
   Skin.prototype.setSkeleton = function (on) {
-    var keys = ['hips', 'torso', 'armL', 'armR', 'sleeveL', 'sleeveR', 'legL', 'legR', 'footL', 'footR', 'neck'];
+    var keys = ['hips', 'torso', 'armL', 'armR', 'sleeveL', 'sleeveR', 'legL', 'legR',
+      'footL', 'footR', 'neck', 'headL', 'handLL', 'handRL'];
     for (var i = 0; i < keys.length; i++) {
       var m = this[keys[i]].mesh.material;
       m.transparent = on; m.opacity = on ? 0.3 : 1;
     }
-    [this.head, this.cap, this.peak, this.handL, this.handR, this.earL, this.earR].forEach(function (x) {
+    [this.cap, this.peak, this.earL, this.earR, this.deltL, this.deltR,
+      this.hipBL, this.hipBR].forEach(function (x) {
       x.material.transparent = on; x.material.opacity = on ? 0.3 : 1;
     });
   };

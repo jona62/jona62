@@ -99,6 +99,14 @@
     bindInput();
     last = global.performance.now();
     global.requestAnimationFrame(frame);
+    /* dev handle: the view harness orbits the camera through this */
+    global.__setCamYaw = function (y) { cam.yaw = y; };
+    global.__setCam = function (o) {
+      if (o.yaw !== undefined) cam.yaw = o.yaw;
+      if (o.dist !== undefined) cam.dist = o.dist;
+      if (o.pitch !== undefined) cam.pitch = o.pitch;
+      if (o.ty !== undefined) { cam.ty = o.ty; cam.lockY = o.ty; }
+    };
   }
 
   function resize() {
@@ -209,7 +217,7 @@
 
     cam.tx = U.damp(cam.tx, body.pos.x, 3.2, dt);
     cam.tz = U.damp(cam.tz, body.pos.z, 3.2, dt);
-    cam.ty = U.damp(cam.ty, 0.9 + body.yOff * 0.5, 4, dt);
+    cam.ty = cam.lockY !== undefined ? cam.lockY : U.damp(cam.ty, 0.9 + body.yOff * 0.5, 4, dt);
     var cy = Math.cos(cam.pitch);
     camera.position.set(
       cam.tx + Math.sin(cam.yaw) * cam.dist * cy,

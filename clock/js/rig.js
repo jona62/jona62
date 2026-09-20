@@ -30,7 +30,11 @@
     shoulderY: 0.818, hipY: 0.530, kneeY: 0.285, ankleY: 0.039,
     upperArm: 0.186, foreArm: 0.146, hand: 0.108,
     thigh: 0.245, shank: 0.246, footLen: 0.152,
-    shoulderHalf: 0.129, hipHalf: 0.096,
+    /* shoulderHalf is the acromion (biacromial 0.259 H). hipHalf is the
+       femoral head, NOT the pelvis: bi-iliac breadth is 0.191 H but the hip
+       joints are only about 0.097 H apart, and hanging the legs off the
+       pelvis edge splays them. */
+    shoulderHalf: 0.129, hipHalf: 0.049, pelvisHalf: 0.096,
     headRx: 0.066, headRy: 0.071, headRz: 0.078, neck: 0.052,
     mHAT: 0.678, mLeg: 0.161,
     crouchMax: 0.30, leanMax: 0.62, sideMax: 0.34,
@@ -266,7 +270,7 @@
   Body.prototype.vertical = function (dt) {
     var H = this.H;
     this.stateT += dt;
-    var crouchT = this.ctl.crouch;
+    var crouchT = this.ctl.crouch + (this.autoCrouch || 0);
     if (this.state === 'jumpCrouch') {
       crouchT = 0.85;
       if (this.stateT > 0.17) { this.state = 'jumpPush'; this.stateT = 0; }
@@ -315,7 +319,10 @@
     tL.y += this.n[3].fbm(this.time * 0.11) * 0.022 * H;
     tR.y += this.n[4].fbm(this.time * 0.10 + 7) * 0.022 * H;
     var k = 26, c = 9;
-    if (this.action !== 'pickup' && !this.reach) this.ctl.crouch = 0;
+    /* The crouch the pickup needs is the body's own business; ctl.crouch is
+       the controller's. Writing the first into the second means anything a
+       consumer sets is silently wiped on the next frame. */
+    if (this.action !== 'pickup') this.autoCrouch = 0;
 
     if (this.action === 'throw') {
       /* hips, then trunk, then the arm: a throw is a chain, not a hinge */
@@ -348,12 +355,12 @@
           this.ctl.moveTo = { x: o.pos.x - dir.x * 0.26 * H, z: o.pos.z - dir.z * 0.26 * H };
         }
         tR = toLocal(o.pos); k = 110; c = 19;
-        this.ctl.crouch = U.clamp((0.55 * H - o.pos.y) / (0.5 * H), 0, 0.8);
+        this.autoCrouch = U.clamp((0.55 * H - o.pos.y) / (0.5 * H), 0, 0.8);
         var hw = this.handWorld('R');
         if (hw && len(sub(hw, o.pos)) < 0.11 * H) {
-          this.held = o; o.held = true; this.action = null; this.ctl.crouch = 0;
+          this.held = o; o.held = true; this.action = null; this.autoCrouch = 0;
         }
-        if (this.actionT > 5) { this.action = null; this.ctl.crouch = 0; }
+        if (this.actionT > 5) { this.action = null; this.autoCrouch = 0; }
       } else this.action = null;
     } else if (this.held) {
       tR = { x: 0.15 * H, y: -0.20 * H, z: 0.13 * H };
@@ -480,7 +487,7 @@
       void lf;
     } else {
       lookYaw = this.n[5].fbm(this.time * 0.08, 2) * 0.3;
-      lookPitch = this.ctl.crouch * 0.4 + speed * 0.1;
+      lookPitch = (this.ctl.crouch + (this.autoCrouch || 0)) * 0.4 + speed * 0.1;
     }
     spring(s, 'headYaw', lookYaw, 12, 0.85, dt);
     spring(s, 'headPitch', lookPitch, 10, 0.85, dt);

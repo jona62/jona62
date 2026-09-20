@@ -34,6 +34,14 @@ point: land under where the hips will be, plus half a stride along the heading.
 `skin3d.js` hangs geometry on them and knows nothing about biomechanics. The
 body is `../js/rig.js` — the same module the clock and the 2D lab use.
 
+**Everything is a lofted surface**, including the head and the hands. The head
+is a stack of rings from the chin to the crown with separate width and depth
+profiles and a per-ring forward offset, so the jaw is narrow, the cheekbones
+are the widest point, the cranium is deeper than it is wide, and the face plane
+sits forward of the axis while the crown sits behind it. The hands are
+flattened paddles run along the forearm. Neither is a sphere with a scale on
+it, and the head grows out of the neck rather than balancing on it.
+
 **Limbs are lofted surfaces, not assemblies.** Cylinders meeting at spheres is
 what made the first version read as a robot: every joint was a seam between two
 hard primitives and every limb had one thickness end to end. Each limb is now a
@@ -47,6 +55,25 @@ shortest-arc rotation, which stops the section spinning about the limb as it
 swings — the usual cause of a subtle, hard-to-place wrongness. Caps are wound
 both ways and drawn double-sided: a loft whose end you can see into reads as a
 paper cut-out, and getting cap winding wrong fails silently.
+
+**Limb roots are pinholes with joint masses over them.** Each limb starts at a
+ring small enough to vanish inside the trunk and opens to full width a tenth of
+the way along; a wide root ring produced flared trouser mouths at the hips. But
+a limb rooted at a fixed point tears away from the trunk the moment it swings
+up, because the root stops being inside — so a deltoid at each shoulder and a
+femoral mass at each hip sit on the joint itself, in the colour of whatever
+covers them, swallowed from both sides. The torso loft also carries the
+shoulder line and narrows into the trapezius above it: stop it at the chest and
+the shoulder joint floats 0.035 H clear of the ribcage with nothing under the
+sleeve, which is what puts a man in shoulder pads.
+
+**The profiles are girths, not guesses.** They are radii as fractions of
+stature, derived from circumferences — an upper arm is about 32 cm around, so
+10 cm across, so 0.029 H of radius. Eyeballing them produced a body about 1.7x
+too thick everywhere, which reads as inflated however good the proportions
+between the joints are. Cloth clears the limb under it by a real margin too:
+run a sleeve within a millimetre of an arm and the skin z-fights through it,
+which looks like a gap rather than the coincident surfaces it is.
 
 Shadows do a lot of work here that no amount of rigging can: the moment the
 shadow separates from the feet, the jump reads as a jump.
@@ -66,12 +93,19 @@ back — without it every screenshot of a WebGL canvas comes out blank.
 - Nothing collides except the ground: he walks through the ball rather than
   kicking it, and nothing can push him over.
 - The camera orbits but never collides or auto-frames.
-- Hands and the head are still placed primitives rather than lofted, so they
-  are the least convincing parts close up.
+- The cap, the peak and the ears are still placed primitives.
+- Fingers are implied by the shape of the hand, not modelled.
 
 ## Development
 
 ```
 node ../tools/lab3dshot.js "click:jump,grid:6:150"
 node ../tools/lab3dshot.js "click:grab,wait:3000,click:throw,grid:6:130"
+node ../tools/views3d.js reach          # the same pose from four sides
+DIST=1.3 TY=1.55 node ../tools/views3d.js idle    # close on the head
 ```
+
+`views3d.js` is the one that matters for the body: joint seams only show from
+certain angles and in certain poses, so it orbits a held pose (`idle`, `reach`,
+`crouch`, `run`, `jump`) and tiles front, left, back and right. Every junction
+fault in this file was found that way and none of them were visible head-on.
