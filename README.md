@@ -6,7 +6,8 @@
 
 [![Mac — Meme as Code](https://img.shields.io/badge/Mac-Meme_as_Code-FF4081?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI%2BCiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzFhMTkxOCIvPgogIDx0ZXh0IHg9IjE2IiB5PSIyMyIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9Ikdlb3JnaWEsc2VyaWYiIGZvbnQtd2VpZ2h0PSI3MDAiIGZvbnQtc2l6ZT0iMjIiIGZpbGw9IiNjNDRiMmIiPk08L3RleHQ%2BCjwvc3ZnPgo%3D)](https://macstudio.meme)
 [![Rigbox](https://img.shields.io/badge/Rigbox-Ship_from_the_terminal-0EA5E9?style=flat&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSJSaWdib3ggRmF2aWNvbiI%2BCiAgPHJlY3QgeD0iMiIgeT0iMiIgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiByeD0iMTIiIGZpbGw9IiMwNTA4MDciIC8%2BCiAgPHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwZDM3YSIgc3Ryb2tlLXdpZHRoPSIyLjUiIC8%2BCiAgPHRleHQgeD0iMzIiIHk9IjQyIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0ibW9ub3NwYWNlIiBmb250LXNpemU9IjIyIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjMDBkMzdhIj7ilrhfPC90ZXh0Pgo8L3N2Zz4K)](https://rigbox.dev)
-[![Agent Infra](https://img.shields.io/badge/Agent_Infra-codeindex-8B5CF6?style=flat&logo=probot&logoColor=white)](https://github.com/rigbox-dev/codeindex)
+[![Oyezly](https://img.shields.io/badge/Oyezly-Launch_marketing-F59E0B?style=flat)](https://oyezly.com)
+[![Couchside](https://img.shields.io/badge/Couchside-Find_your_next_show-E11D48?style=flat)](https://couchside.stream)
 
 ![Profile views](https://komarev.com/ghpvc/?username=jona62&style=flat&color=blue)
 
@@ -24,12 +25,17 @@ A general-purpose programming language where memes are first-class citizens. Its
 #### [Rigbox](https://rigbox.dev) — *isolated micro-VMs with native AI*
 An API-first platform for running code in isolated micro-VMs, each with its own kernel, filesystem, and network. Sandbox untrusted or AI-generated code, expose apps as public URLs with automatic HTTPS, and run AI agents through a managed, metered proxy across Anthropic, OpenAI, and Google (or bring your own keys). Includes workspaces, snapshots, a catalog of one-call apps, setup automation, and a full `rig` CLI.
 
-[Website](https://rigbox.dev) · [Docs](https://docs.rigbox.dev) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
+[Website](https://rigbox.dev) · [Docs](https://docs.rigbox.dev) · [CLI](https://docs.rigbox.dev/cli-reference) · [Examples](https://github.com/rigbox-dev/rigbox-examples)
 
-#### Agent infrastructure
-The tooling around AI coding agents that indexes code and makes it retrievable for them.
+#### [Oyezly](https://oyezly.com) — *launch marketing for technical founders*
+Paste a link and Oyezly researches the market, names the product and checks the domain, handles and trademark, draws the brand, puts a sign-up form on the founder's site, and drafts every post, email and Hacker News launch. Nothing goes out until it's approved. Every console page has an Ask box for changes in plain words, and an MCP server brings Oyezly into Claude Code, Cursor and Codex: read the brand, pull site fixes as prompts, and draft and approve posts from the editor.
 
-- **[codeindex](https://github.com/rigbox-dev/codeindex)** — semantic code indexing &amp; retrieval (tree-sitter AST + embeddings) as a CLI + MCP server.
+[Website](https://oyezly.com)
+
+#### [Couchside](https://couchside.stream) — *find your next show*
+A TV recommender dressed as a streaming service. Rate what you've watched and it builds rows of picks from a model over ~90,000 shows that weighs plots, themes, genres, franchises and makers against what your whole list leans toward, rebuilt and checked nightly. Title pages with cast, trailers and where to stream, My List, and accounts that sync across devices.
+
+[Live](https://couchside.stream) · [Research write-up](https://tv-taste-jlvf21do.rigbox.dev/)
 
 #### [TaskDaemon](https://hub.docker.com/r/mshelia/taskdaemon) — *offload the heavy work*
 A task queue that lets a service hand CPU-intensive jobs to handlers written in any language.
@@ -45,15 +51,19 @@ A task queue that lets a service hand CPU-intensive jobs to handlers written in 
 ![Rust](https://img.shields.io/badge/Rust-000000?style=flat&logo=rust&logoColor=white)
 ![C++](https://img.shields.io/badge/C++-00599C?style=flat&logo=cplusplus&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat&logo=kotlin&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=nextdotjs&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
 ![Bash](https://img.shields.io/badge/Bash-4EAA25?style=flat&logo=gnubash&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat&logo=amazonwebservices&logoColor=white)
 
 **Proficient — regular use**
 
-![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat&logo=kotlin&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=flat&logo=nodedotjs&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat&logo=githubactions&logoColor=white)
+![Playwright](https://img.shields.io/badge/Playwright-2EAD33?style=flat&logo=playwright&logoColor=white)
 
 **Familiar — reach for when needed**
 
