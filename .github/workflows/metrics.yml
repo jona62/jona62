@@ -24,9 +24,6 @@ jobs:
           config_timezone: America/New_York
           config_display: large
 
-      # Languages card is hand-maintained in languages.svg (curated order),
-      # since the byte-based analyzer can't hold a fixed ranking.
-
       - name: Contribution calendar
         uses: lowlighter/metrics@v3.34
         with:
@@ -37,3 +34,26 @@ jobs:
           plugin_isocalendar: yes
           plugin_isocalendar_duration: full-year
           config_timezone: America/New_York
+
+  languages:
+    # Recomputes languages.svg from language totals across my repos (private
+    # ones included via METRICS_TOKEN). Only percentages are committed.
+    needs: github-metrics
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Draw languages card
+        env:
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+        run: python3 .github/scripts/languages.py languages.svg
+      - name: Commit if changed
+        run: |
+          git diff --quiet languages.svg && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add languages.svg
+          git commit -m "Update languages.svg - [Skip GitHub Action]"
+          git pull --rebase
+          git push

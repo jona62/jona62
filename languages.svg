@@ -1,25 +1,19 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="120" viewBox="0 0 480 120" role="img" aria-label="Most used languages">
-  <text x="8" y="22" fill="#0366d6" font-size="16" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">Most used languages</text>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="112" viewBox="0 0 480 112" role="img" aria-label="Most used languages: TypeScript/JavaScript 43%, Python 21%, Rust 20%, C++ 8%, Swift 4%">
+  <style>.t{fill:#0366d6}.l{fill:#57606a}@media (prefers-color-scheme:dark){.t{fill:#58a6ff}.l{fill:#8b949e}}</style>
+  <text class="t" x="8" y="22" font-size="16" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">Most used languages</text>
   <clipPath id="barclip"><rect x="8" y="34" width="464" height="8" rx="4"/></clipPath>
   <g clip-path="url(#barclip)">
-    <rect x="8"      y="34" width="129.92" height="8" fill="#dea584"/>
-    <rect x="137.92" y="34" width="92.80"  height="8" fill="#a97bff"/>
-    <rect x="230.72" y="34" width="74.24"  height="8" fill="#f34b7d"/>
-    <rect x="304.96" y="34" width="64.96"  height="8" fill="#3572a5"/>
-    <rect x="369.92" y="34" width="55.68"  height="8" fill="#3178c6"/>
-    <rect x="425.60" y="34" width="27.84"  height="8" fill="#89e051"/>
-    <rect x="453.44" y="34" width="18.56"  height="8" fill="#555555"/>
+    <rect x="8.00" y="34" width="207.83" height="8" fill="#3178c6"/>
+    <rect x="215.83" y="34" width="101.50" height="8" fill="#ffd43b"/>
+    <rect x="317.33" y="34" width="96.67" height="8" fill="#dea584"/>
+    <rect x="414.00" y="34" width="38.67" height="8" fill="#f34b7d"/>
+    <rect x="452.67" y="34" width="19.33" height="8" fill="#f05138"/>
   </g>
-
-  <g font-size="13" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" fill="#57606a">
-    <circle cx="13"  cy="64" r="5" fill="#dea584"/><text x="24"  y="68">Rust 28%</text>
-    <circle cx="129" cy="64" r="5" fill="#a97bff"/><text x="140" y="68">Kotlin 20%</text>
-    <circle cx="245" cy="64" r="5" fill="#f34b7d"/><text x="256" y="68">C++ 16%</text>
-    <circle cx="361" cy="64" r="5" fill="#3572a5"/><text x="372" y="68">Python 14%</text>
-
-    <circle cx="13"  cy="92" r="5" fill="#3178c6"/><text x="24"  y="96">TypeScript/JavaScript 12%</text>
-    <circle cx="205" cy="92" r="5" fill="#89e051"/><text x="216" y="96">Bash 6%</text>
-    <circle cx="300" cy="92" r="5" fill="#555555"/><text x="311" y="96">C 4%</text>
+  <g class="l" font-size="13" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
+    <circle cx="13.0" cy="64" r="5" fill="#3178c6"/><text x="24.0" y="68">TypeScript/JavaScript 43%</text>
+    <circle cx="227.0" cy="64" r="5" fill="#ffd43b"/><text x="238.0" y="68">Python 21%</text>
+    <circle cx="333.0" cy="64" r="5" fill="#dea584"/><text x="344.0" y="68">Rust 20%</text>
+    <circle cx="13.0" cy="92" r="5" fill="#f34b7d"/><text x="24.0" y="96">C++ 8%</text>
+    <circle cx="90.2" cy="92" r="5" fill="#f05138"/><text x="101.2" y="96">Swift 4%</text>
   </g>
 </svg>
