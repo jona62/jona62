@@ -1,19 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="112" viewBox="0 0 480 112" role="img" aria-label="Most used languages: TypeScript/JavaScript 43%, Python 21%, Rust 20%, C++ 8%, Swift 4%">
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="112" viewBox="0 0 480 112" role="img" aria-label="Most used languages: TypeScript/JavaScript 41%, Python 23%, Rust 19%, C++ 9%, Swift 5%, C 2%">
   <style>.t{fill:#0366d6}.l{fill:#57606a}@media (prefers-color-scheme:dark){.t{fill:#58a6ff}.l{fill:#8b949e}}</style>
   <text class="t" x="8" y="22" font-size="16" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">Most used languages</text>
   <clipPath id="barclip"><rect x="8" y="34" width="464" height="8" rx="4"/></clipPath>
   <g clip-path="url(#barclip)">
-    <rect x="8.00" y="34" width="207.83" height="8" fill="#3178c6"/>
-    <rect x="215.83" y="34" width="101.50" height="8" fill="#ffd43b"/>
-    <rect x="317.33" y="34" width="96.67" height="8" fill="#dea584"/>
-    <rect x="414.00" y="34" width="38.67" height="8" fill="#f34b7d"/>
-    <rect x="452.67" y="34" width="19.33" height="8" fill="#f05138"/>
+    <rect x="8.00" y="34" width="192.16" height="8" fill="#3178c6"/>
+    <rect x="200.16" y="34" width="107.80" height="8" fill="#ffd43b"/>
+    <rect x="307.96" y="34" width="89.05" height="8" fill="#dea584"/>
+    <rect x="397.01" y="34" width="42.18" height="8" fill="#f34b7d"/>
+    <rect x="439.19" y="34" width="23.43" height="8" fill="#f05138"/>
+    <rect x="462.63" y="34" width="9.37" height="8" fill="#555555"/>
   </g>
   <g class="l" font-size="13" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
-    <circle cx="13.0" cy="64" r="5" fill="#3178c6"/><text x="24.0" y="68">TypeScript/JavaScript 43%</text>
-    <circle cx="227.0" cy="64" r="5" fill="#ffd43b"/><text x="238.0" y="68">Python 21%</text>
-    <circle cx="333.0" cy="64" r="5" fill="#dea584"/><text x="344.0" y="68">Rust 20%</text>
-    <circle cx="13.0" cy="92" r="5" fill="#f34b7d"/><text x="24.0" y="96">C++ 8%</text>
-    <circle cx="90.2" cy="92" r="5" fill="#f05138"/><text x="101.2" y="96">Swift 4%</text>
+    <circle cx="13.0" cy="64" r="5" fill="#3178c6"/><text x="24.0" y="68">TypeScript/JavaScript 41%</text>
+    <circle cx="227.0" cy="64" r="5" fill="#ffd43b"/><text x="238.0" y="68">Python 23%</text>
+    <circle cx="333.0" cy="64" r="5" fill="#dea584"/><text x="344.0" y="68">Rust 19%</text>
+    <circle cx="13.0" cy="92" r="5" fill="#f34b7d"/><text x="24.0" y="96">C++ 9%</text>
+    <circle cx="90.2" cy="92" r="5" fill="#f05138"/><text x="101.2" y="96">Swift 5%</text>
+    <circle cx="181.8" cy="92" r="5" fill="#555555"/><text x="192.8" y="96">C 2%</text>
   </g>
 </svg>
