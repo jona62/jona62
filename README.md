@@ -46,7 +46,7 @@ A general-purpose programming language where memes are first-class citizens. Its
 #### [TaskDaemon](https://hub.docker.com/r/mshelia/taskdaemon) — *offload the heavy work*
 A task queue that lets a service hand CPU-intensive jobs to handlers written in any language.
 
-[Docker image](https://hub.docker.com/r/mshelia/taskdaemon) · [Sample service](https://github.com/jona62/TaskDaemon-Sample) · [Handler SDKs](https://github.com/jona62/TaskDaemon-Handlers)
+[Docker image](https://hub.docker.com/r/mshelia/taskdaemon) · [Sample service](https://github.com/jona62/taskdaemon-example) · [Handler SDKs](https://github.com/jona62/taskdaemon-sdks)
 
 ---
 
