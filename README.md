@@ -27,7 +27,7 @@ An API-first platform for running code in isolated micro-VMs, each with its own 
 
 Paste a link and Oyezly researches the market, names the product and checks the domain, handles and trademark, draws the brand, puts a sign-up form on the founder's site, and drafts every post, email and Hacker News launch. Nothing goes out until it's approved. Every console page has an Ask box for changes in plain words, and an MCP server brings Oyezly into Claude Code, Cursor and Codex: read the brand, pull site fixes as prompts, and draft and approve posts from the editor.
 
-[Website](https://oyezly.com)
+[Website](https://oyezly.com) · [GitHub](https://github.com/Oyezly)
 
 #### [Couchside](https://couchside.stream) — *find your next show*
 <a href="https://couchside.stream"><img src="./assets/couchside.jpg" align="right" width="260" alt="Couchside"/></a>
@@ -41,7 +41,7 @@ A general-purpose programming language where memes are first-class citizens. Its
 
 <a href="https://playground.macstudio.meme/#ca51ba87-6120-4fc0-b73e-790319d860a7"><img src="./assets/mac-playground.jpg" width="100%" alt="A Drake meme written in Mac in the Playground: the code on the left, the rendered meme on the right"/></a>
 
-[Language](https://github.com/jona62/mac) · [Playground](https://playground.macstudio.meme) · [Studio](https://macstudio.meme) · [Docs](https://docs.macstudio.meme)
+[Language](https://github.com/mac-studio-meme/mac) · [Playground](https://playground.macstudio.meme) · [Studio](https://macstudio.meme) · [Docs](https://docs.macstudio.meme)
 
 #### [TaskDaemon](https://hub.docker.com/r/mshelia/taskdaemon) — *offload the heavy work*
 A task queue that lets a service hand CPU-intensive jobs to handlers written in any language.
